@@ -1,0 +1,2 @@
+.text
+xor al, al
