@@ -42,9 +42,16 @@ OPCODES = {
     # stack
     "PUSH": 0x1d,
     "POP": 0x1e,
+
+    # computer
+    "RST": 0x1f
 }
 
 SEGMENTS = [
     ".data",  # vars etc 
     ".text",  # the code itself
 ]
+
+_SIZEOF_OPCODE = 5
+_SIZEOF_SOURCE = 3
+_SIZEOF_DEST   = 8
