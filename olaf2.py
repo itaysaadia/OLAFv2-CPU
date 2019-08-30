@@ -34,9 +34,24 @@ OPCODES = {
     # user interation
     "GET": 0x19,  # get user data
     "OUT": 0x1a,  # print out data
+
+    # registers operations
+    "MOV": 0x1b,  # move a value to a register
+    "MOVR": 0x1c,  # move a register to a register
+
+    # stack
+    "PUSH": 0x1d,
+    "POP": 0x1e,
+
+    # computer
+    "RST": 0x1f
 }
 
 SEGMENTS = [
     ".data",  # vars etc 
     ".text",  # the code itself
 ]
+
+_SIZEOF_OPCODE = 5
+_SIZEOF_SOURCE = 3
+_SIZEOF_DEST   = 8
