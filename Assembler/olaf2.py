@@ -15,12 +15,13 @@ OPCODES = {
     "OR": 0x0b,  # bitwise and
 
     # relations
-    "BT":  0x0c,  # bigger then
-    "LT":  0x0d,  # less then
-    "EQ":  0x0e,  # equals
-    "NBT": 0x0f,  # not bigger then
-    "NLT": 0x10,  # not less then
-    "NEQ": 0x11,  # not equals
+    "TEST":  0x0c
+    # "BT":  0x0c,  # bigger then
+    # "LT":  0x0d,  # less then
+    # "EQ":  0x0e,  # equals
+    # "NBT": 0x0f,  # not bigger then
+    # "NLT": 0x10,  # not less then
+    # "NEQ": 0x11,  # not equals
 
     # control flow
     "JMP": 0x12,  # jump every time
