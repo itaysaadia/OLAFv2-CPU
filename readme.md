@@ -18,4 +18,4 @@ How to run
 
 OLAFv2 is simulated on a program called [Logisim](http://www.cburch.com/logisim/ "Click here to download Logisim!")
 
-To run this program just download and [Logisim](http://www.cburch.com/logisim/ "Click here to download Logisim!") and load the .circ file named olaf2.circ
+To run this program just download and [Logisim](http://www.cburch.com/logisim/ "Click here to download Logisim!") and load the .circ file named olaf2.circ from the folder named OS.
