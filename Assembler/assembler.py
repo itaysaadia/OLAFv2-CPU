@@ -134,7 +134,8 @@ class OLAFAssembler:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if 3 != len(sys.argv):
         logger.error(f"Usage {sys.argv[0]} OASM_FILE")
+        exit(-1)
     disassembler = OLAFAssembler(sys.argv[1])
-    disassembler.disassemble(output_file="BOOT.rom")
+    disassembler.disassemble(output_file=sys.argv[2])
