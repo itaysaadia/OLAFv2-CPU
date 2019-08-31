@@ -830,6 +830,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="inputs" val="2"/>
     </comp>
     <comp lib="5" loc="(840,190)" name="DotMatrix">
+      <a name="matrixcols" val="4"/>
       <a name="matrixrows" val="8"/>
     </comp>
     <comp lib="2" loc="(670,570)" name="Multiplexer">
