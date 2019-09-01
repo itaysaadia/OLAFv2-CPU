@@ -5,7 +5,7 @@ import sys
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-logging.debug("olaf assembler starting")
+logger.debug("olaf assembler starting")
 
 
 class OLAFAssembler:
@@ -24,7 +24,7 @@ class OLAFAssembler:
             logger.error(f"Oasm file {oasm_file} not found")
         self.should_print = True
         self._regex_line_of_code = re.compile(
-            r"(^\w{2,4})\s(\$?\w)+(?:(?:,\s)(\S+))?$")
+            r"(^\w{2,4})(?:\s(\$?\w)+(?:,\s)(\S+))?$")
 
         self._tokenized_oasm = {".text": list(), ".data": list()}
         self._vars = dict()
@@ -121,13 +121,20 @@ class OLAFAssembler:
                 self.assembly += "\n"
             try:
                 opcode = olaf2.OPCODES[instruction.upper()]
-                opcode += int(source) << olaf2._SIZEOF_OPCODE 
-                opcode += int(destination) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
-                logger.debug(f"opcode found! {line} is {hex(opcode)}")
-                self.assembly += f"{hex(opcode)[2:]} "
-            except:
-                raise SyntaxError(f"opcode {instruction} not found")
-
+            except IndexError:
+                raise SyntaxError(f"opcode \"{instruction}\" not found")
+            if source:
+                if source.startswith("0x"):
+                    opcode += int(source, 16) << olaf2._SIZEOF_OPCODE 
+                else:
+                    opcode += int(source) << olaf2._SIZEOF_OPCODE 
+            if destination:
+                if destination.startswith("0x"):
+                    opcode += int(destination, 16) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
+                else:
+                    opcode += int(destination) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
+            logger.debug(f"opcode found! {line} is {hex(opcode)}")
+            self.assembly += f"{hex(opcode)[2:]} "
 
     def _replace_var_names_with_offsets(self, var_name: str):
         pass
