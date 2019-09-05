@@ -30,12 +30,12 @@ class OLAFAssembler:
         self._vars = dict()
         self.assembly = "v2.0 raw"
 
-    def disassemble(self, output_file=None, should_print=False) -> str:
+    def assemble(self, output_file=None, should_print=False) -> str:
         """
         :param output_file: (optional) output file for the buffer of disassembly
         :param should_print: (optional) if True, prints the assembly buffer in the end 
 
-        start the disassembly process.
+        start the assembling process.
         prints is should_print is True.
         writes to a file if output_file is set.
         returns a string buffer of ascii-printable "assembly"
