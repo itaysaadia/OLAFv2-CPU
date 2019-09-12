@@ -1,9 +1,11 @@
-import olaf2
 import logging
 import re
 import sys
 
-logger = logging.getLogger()
+import olaf2
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.debug("olaf assembler starting")
 
@@ -25,17 +27,19 @@ class OLAFAssembler:
         self.should_print = True
         self._regex_line_of_code = re.compile(
             r"(^\w{2,4})(?:\s(\$?\w)+(?:,\s)(\S+))?$")
+        self._regex_line_of_data = re.compile(
+            r'''(?:str|int)\s(\w+)\s=\s(.+)''')
 
         self._tokenized_oasm = {".text": list(), ".data": list()}
         self._vars = dict()
         self.assembly = "v2.0 raw"
 
-    def disassemble(self, output_file=None, should_print=False) -> str:
+    def assemble(self, output_file=None, should_print=False) -> str:
         """
         :param output_file: (optional) output file for the buffer of disassembly
         :param should_print: (optional) if True, prints the assembly buffer in the end 
 
-        start the disassembly process.
+        start the assembling process.
         prints is should_print is True.
         writes to a file if output_file is set.
         returns a string buffer of ascii-printable "assembly"
@@ -82,6 +86,8 @@ class OLAFAssembler:
         current_segment = None
         for line_number, line in enumerate(self.oasm_file.readlines()):
             line = line.rstrip().strip()
+            if not line:
+                continue
             logger.debug(f"reading line {line_number}: {line}")
             line_number += 1  # first line of the file is 1
             if line.startswith("."):  # this dot represents segment
@@ -102,16 +108,24 @@ class OLAFAssembler:
                 elif current_segment == ".text":
                     if not self._regex_line_of_code.match(line):
                         raise SyntaxError(
-                            f"invalid length of line in line {line_number} of {self.oasm_file.name}")
+                            f"invalid length of line in line {line_number} of {self.oasm_file.name}: {line}")
                     self._tokenized_oasm[".text"].append(
                         self._regex_line_of_code.search(line).groups()
                     )
                     logger.debug(f"added {self._regex_line_of_code.search(line).groups()}")
+                elif current_segment == ".data":
+                    if not self._regex_line_of_data.match(line):
+                        raise SyntaxError(
+                            f"invalid line in {line_number} of {self.oasm_file.name}: {line}")
+                    self._tokenized_oasm[".data"].append(
+                        self._regex_line_of_data.search(line).groups()
+                    )
+                    logger.debug(f"added {self._regex_line_of_data.search(line).groups()}")
                 else:
                     raise SyntaxError(f"Unknown segment {current_segment}")
 
     def _parse_data(self):
-        pass
+        logger.debug("parsing data")
 
     def _parse_text(self):
        for i, line in enumerate(self._tokenized_oasm[".text"]):
@@ -144,5 +158,5 @@ if __name__ == "__main__":
     if 3 != len(sys.argv):
         logger.error(f"Usage {sys.argv[0]} OASM_FILE")
         exit(-1)
-    disassembler = OLAFAssembler(sys.argv[1])
-    disassembler.disassemble(output_file=sys.argv[2])
+    assembler = OLAFAssembler(sys.argv[1])
+    assembler.assemble(output_file=sys.argv[2])
