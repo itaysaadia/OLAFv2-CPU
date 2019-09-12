@@ -1,3 +1,5 @@
 *.swp
 *~
 *.txt
+.vscode
+__pycache__/
