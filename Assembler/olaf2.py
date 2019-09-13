@@ -3,7 +3,7 @@ OPCODES = {
     # arithmetics
     "ADD": 0x01,  # addition
     "SUB": 0x02,  # substraction
-    "MUL": 0x03,  # multipication
+    "MUL": 0x03,  # multiplication
     "DIV": 0x04,  # division
     "MOD": 0x05,  # modulo
 
