@@ -22,6 +22,9 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <tool name="Constant">
       <a name="value" val="0x0"/>
     </tool>
+    <tool name="Power">
+      <a name="facing" val="south"/>
+    </tool>
     <tool name="Ground">
       <a name="facing" val="east"/>
     </tool>
@@ -111,7 +114,6 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <wire from="(310,290)" to="(360,290)"/>
     <wire from="(310,310)" to="(430,310)"/>
     <wire from="(230,310)" to="(280,310)"/>
-    <wire from="(290,410)" to="(290,420)"/>
     <wire from="(260,240)" to="(260,260)"/>
     <wire from="(260,260)" to="(260,280)"/>
     <wire from="(220,290)" to="(220,370)"/>
@@ -202,9 +204,6 @@ c 8*0 1f
     <comp lib="6" loc="(74,216)" name="Text">
       <a name="text" val="to fix:"/>
     </comp>
-    <comp lib="0" loc="(290,420)" name="Constant">
-      <a name="facing" val="north"/>
-    </comp>
     <comp lib="6" loc="(48,247)" name="Text">
       <a name="text" val="input"/>
     </comp>
@@ -216,6 +215,9 @@ c 8*0 1f
     </comp>
     <comp lib="6" loc="(59,326)" name="Text">
       <a name="text" val="not using 8-bit"/>
+    </comp>
+    <comp lib="0" loc="(290,410)" name="Power">
+      <a name="facing" val="south"/>
     </comp>
     <comp lib="0" loc="(330,240)" name="Splitter">
       <a name="fanout" val="1"/>
