@@ -35,9 +35,9 @@ OPCODES = {
     "MOV": 0x1b,  # move a value to a register
 
     # stack
-    "RET": 0x1c,  # take the value from the stack and jump to it
-    "PUSH": 0x1d,  # push a value to the stack
-    "POP": 0x1e,  # pop a value from the stack 
+    "PUSH": 0x1c,  # push a value to the stack
+    "POP": 0x1d,  # pop a value from the stack 
+    "RET": 0x1e,  # take the value from the stack and jump to it
 
     # computer
     "RST": 0x1f,  # restart the computer
