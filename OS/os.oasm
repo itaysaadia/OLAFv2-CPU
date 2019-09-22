@@ -1,4 +1,23 @@
 .text
+NOP
+; stack
+MOV 0, 0x41
+PUSH 0, 0
+POP 3, 0
+OUT
+; conditionals
+MOV 0, 1
+TEST 0, 2
+JST 0, 9
+; if AX == 0
+OUT 0, 89
+JMP 0, 10
+; else
+OUT 0, 78
+; finally
+OUT 0, 10
+
+; addition
 OUT 0, 0x34
 OUT 0, 43
 OUT 0, 0x35
@@ -8,6 +27,7 @@ ADD 3, 0x5
 OUT
 OUT 0, 10
 
+; subtraction
 OUT 0, 0x35
 OUT 0, 45
 OUT 0, 0x34
@@ -17,6 +37,7 @@ SUB 3, 0x4
 OUT
 OUT 0, 10
 
+; multiplication
 OUT 0, 0x35
 OUT 0, 42
 OUT 0, 0x34
@@ -98,3 +119,15 @@ OR 3, 0x2
 ADD 3, 0x30
 OUT
 OUT 0, 10
+TEST 0, 0
+
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+NOP
+
+RST

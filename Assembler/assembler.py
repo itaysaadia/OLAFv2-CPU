@@ -86,7 +86,7 @@ class OLAFAssembler:
         current_segment = None
         for line_number, line in enumerate(self.oasm_file.readlines()):
             line = line.rstrip().strip()
-            if not line:
+            if not line or line.startswith(";"):
                 continue
             logger.debug(f"reading line {line_number}: {line}")
             line_number += 1  # first line of the file is 1
