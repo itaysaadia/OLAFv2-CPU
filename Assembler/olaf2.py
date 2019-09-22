@@ -1,5 +1,6 @@
 OPCODES = {
     "NOP": 0X00,
+
     # arithmetics
     "ADD": 0x01,  # addition
     "SUB": 0x02,  # substraction
