@@ -33,14 +33,14 @@ OPCODES = {
 
     # registers operations
     "MOV": 0x1b,  # move a value to a register
-    "MOVR": 0x1c,  # move a register to a register
 
     # stack
-    "PUSH": 0x1d,
-    "POP": 0x1e,
+    "PUSH": 0x1c,  # push a value to the stack
+    "POP": 0x1d,  # pop a value from the stack 
+    "RET": 0x1e,  # take the value from the stack and jump to it
 
     # computer
-    "RST": 0x1f
+    "RST": 0x1f,  # restart the computer
 }
 
 SEGMENTS = [

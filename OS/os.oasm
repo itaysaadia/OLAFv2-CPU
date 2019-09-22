@@ -1,11 +1,17 @@
 .text
+NOP
+; stack
+MOV 0, 0x41
+PUSH 0, 0
+POP 3, 0
+OUT
 ; conditionals
 MOV 0, 1
-TEST 0, 0
-JNE 0, 5
+TEST 0, 2
+JST 0, 9
 ; if AX == 0
 OUT 0, 89
-JMP 0, 6
+JMP 0, 10
 ; else
 OUT 0, 78
 ; finally
