@@ -1,7 +1,7 @@
 .text
 NOP
 ; stack
-MOV $RA, 0x41
+MOV $RA, 'A'
 PUSH $RA
 POP $RD
 OUT
@@ -10,86 +10,91 @@ MOV $RA, 1
 TEST $RA, 2
 JST 0, 9
 ; if AX == 0
-OUT 0, 89
+OUT 'Y'
 JMP $RA, 10
 ; else
 OUT 0, 78
 ; finally
-OUT 0, 10
+OUT 10
 
 ; addition
-OUT 0, 0x34
-OUT 0, 43
-OUT 0, 0x35
-OUT 0, 61
-MOV $RD, 0x34
+OUT '4'
+OUT '+'
+OUT '5'
+OUT '='
+MOV $RD, '4'
 ADD $RD, 0x5
 OUT
 OUT 0, 10
 
 ; subtraction
-OUT 0, 0x35
-OUT 0, 45
-OUT 0, 0x34
-OUT 0, 61
-MOV $RD, 0x35
+OUT '5'
+OUT '-'
+OUT '4'
+OUT '='
+MOV $RD, '5'
 SUB $RD, 0x4
 OUT
 OUT 0, 10
 
 ; multiplication
-OUT 0, 0x35
-OUT 0, 42
-OUT 0, 0x34
-OUT 0, 61
+OUT '5'
+OUT '*'
+OUT '4'
+OUT '='
 MOV $RD, 0x4
 MUL $RD, 0x2
 ADD $RD, 0x30
 OUT
 OUT 0, 10
 
-OUT 0, 0x38
-OUT 0, 47
-OUT 0, 0x34
-OUT 0, 61
+; division
+OUT 0, '8'
+OUT 0, '/'
+OUT 0, '4'
+OUT 0, '='
 MOV $RD, 0x8
 DIV $RD, 0x4
 ADD $RD, 0x30
 OUT
 OUT 0, 10
 
-OUT 0, 0x39
-OUT 0, 37
-OUT 0, 0x34
-OUT 0, 61
+; modulo
+OUT 0, '9'
+OUT 0, '%'
+OUT 0, '4'
+OUT 0, '='
 MOV $RD, 0x9
 MOD $RD, 0x4
 ADD $RD, 0x30
 OUT
 OUT 0, 10
 
-OUT 0, 0x31
-OUT 0, 62
-OUT 0, 62
-OUT 0, 0x33
-OUT 0, 61
+; shift left
+OUT 0, '1'
+OUT 0, '>'
+OUT 0, '>'
+OUT 0, '3'
+OUT 0, '='
 MOV $RD, 0x1
 SHL $RD, 0x3
 ADD $RD, 0x30
 OUT
 OUT 0, 10
 
-OUT 0, 0x38
-OUT 0, 60
-OUT 0, 60
-OUT 0, 0x33
-OUT 0, 61
+; shift right
+OUT 0, '8'
+OUT 0, '<'
+OUT 0, '<'
+OUT 0, '3'
+OUT 0, '='
 MOV $RD, 0x8
 SHR $RD, 0x3
 ADD $RD, 0x30
 OUT
 OUT 0, 10
 
+; XOR
 OUT 0, 0x35
 OUT 0, 94
 OUT 0, 0x37
