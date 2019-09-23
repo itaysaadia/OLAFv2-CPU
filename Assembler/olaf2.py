@@ -55,11 +55,6 @@ class Registers(Enum):
     IP = 4
     SP = 5
 
-SEGMENTS = [
-    ".data",  # vars etc 
-    ".text",  # the code itself
-]
-
 _SIZEOF_OPCODE = 5
 _SIZEOF_SOURCE = 3
 _SIZEOF_DEST   = 8

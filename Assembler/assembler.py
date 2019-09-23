@@ -26,13 +26,16 @@ class OLAFAssembler:
             logger.error(f"Oasm file {oasm_file} not found")
         self.should_print = True
         self._regex_line_of_code = re.compile(
-            r"^(\w{2,4})\s?(?:(\$?\w+)){0,}(?:,\s)?(\w*)$")
+            r"^(\w{2,4})[^\S\r\n]?(?:(\$?\'?\w+\'?)){0,}(?:,[^\S\r\n])?([\S\']+){0,}$")
         self._regex_line_of_data = re.compile(
             r'''(?:str|int)\s(\w+)\s=\s(.+)''')
 
         self._tokenized_oasm = {".text": list(), ".data": list()}
         self._vars = dict()
         self.assembly = "v2.0 raw"
+
+        # commands that the word comes after the opcode represents 8 bits long data
+        self._opcodes_uses_2nd_param_as_data = ["OUT"] 
 
     def assemble(self, output_file=None, should_print=False) -> str:
         """
@@ -94,7 +97,7 @@ class OLAFAssembler:
             if line.startswith("."):  # this dot represents segment
                 segment = line
                 logger.debug(f"found segment {segment}")
-                if segment not in olaf2.SEGMENTS:
+                if segment not in self._tokenized_oasm.keys():
                     raise SyntaxError(
                         f"invalid segment name {segment} in line {line_number}")
                 try:
@@ -132,7 +135,7 @@ class OLAFAssembler:
         for i, line in enumerate(self._tokenized_oasm[".text"]):
             opcode = 0
             instruction, source, destination = line
-            logger.debug(f"parsing code. instruction={instruction}, source={source}, destination={destination}")
+            logger.debug(f"parsing code. instruction='{instruction}', source='{source}', destination='{destination}'")
             if i % 8 == 0:
                 self.assembly += "\n"
             try:
@@ -140,8 +143,14 @@ class OLAFAssembler:
             except IndexError:
                 raise SyntaxError(f"opcode \"{instruction}\" not found")
             if source:
-                if source.startswith("0x"):
+                if instruction in self._opcodes_uses_2nd_param_as_data and not destination:
+                    destination = source
+                    source = "0"
+                if source.startswith("0x") or source.startswith("0X"):
                     opcode += int(source, 16) << olaf2._SIZEOF_OPCODE 
+                elif (source.startswith("'") and source.endswith("'")) or \
+                    (source.startswith('"') and source.endswith('"')):
+                    opcode += ord(source[1]) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
                 elif source.startswith("$"):
                     opcode += olaf2.Registers[source[1:]].value << olaf2._SIZEOF_OPCODE
                 else:
@@ -149,6 +158,9 @@ class OLAFAssembler:
             if destination:
                 if destination.startswith("0x"):
                     opcode += int(destination, 16) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
+                elif (destination.startswith("'") and destination.endswith("'")) or \
+                    (destination.startswith('"') and destination.endswith('"')):
+                    opcode += ord(destination[1]) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
                 else:
                     opcode += int(destination) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
             logger.debug(f"opcode found! {line} is {hex(opcode)} ({opcode})")
