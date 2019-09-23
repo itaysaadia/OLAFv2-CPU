@@ -20,22 +20,23 @@ OPCODES = {
     "TEST":  0x0c,  
 
     # control flow
-    "JMP": 0x12,  # jump every time
-    "JEQ": 0x13,  # jump if equals
-    "JNE": 0x14,  # jump if not equals
-    "JBT": 0x15,  # jump if bigger
-    "JST": 0x16,  # jump if smaller
-    "JBE": 0x17,  # jump if bigger of equals
-    "JLE": 0x18,  # jump if less or equals
+    "JMP": 0x11,  # jump every time
+    "JEQ": 0x12,  # jump if equals
+    "JNE": 0x13,  # jump if not equals
+    "JBT": 0x14,  # jump if bigger
+    "JST": 0x15,  # jump if smaller
+    "JBE": 0x16,  # jump if bigger of equals
+    "JLE": 0x17,  # jump if less or equals
 
     # user interation
-    "GET": 0x19,  # get user data
-    "OUT": 0x1a,  # print out data
+    "GET": 0x18,  # get user data
+    "OUT": 0x19,  # print out data
 
     # registers operations
-    "MOV": 0x1b,  # move a value to a register
+    "MOV": 0x1a,  # move a value to a register
 
     # stack
+    "CALL": 0x1b,  # jmp and store IP on the stack
     "PUSH": 0x1c,  # push a value to the stack
     "POP": 0x1d,  # pop a value from the stack 
     "RET": 0x1e,  # take the value from the stack and jump to it
