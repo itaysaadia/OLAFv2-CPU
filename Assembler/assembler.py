@@ -64,6 +64,7 @@ class OLAFAssembler:
                 self.output_file.write(self.assembly)
             except:
                 logger.warn("could not write to a file")
+        self.assembly += "\n"
         return self.assembly
 
     def _tokenize(self):
