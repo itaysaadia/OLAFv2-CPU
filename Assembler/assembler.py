@@ -26,7 +26,7 @@ class OLAFAssembler:
             logger.error(f"Oasm file {oasm_file} not found")
         self.should_print = True
         self._regex_line_of_code = re.compile(
-            r"(^\w{2,4})(?:\s(\$?\w)+(?:,\s)(\S+))?$")
+            r"^(\w{2,4})\s?(?:(\$?\w+)){0,}(?:,\s)?(\w*)$")
         self._regex_line_of_data = re.compile(
             r'''(?:str|int)\s(\w+)\s=\s(.+)''')
 
@@ -129,26 +129,29 @@ class OLAFAssembler:
         logger.debug("parsing data")
 
     def _parse_text(self):
-       for i, line in enumerate(self._tokenized_oasm[".text"]):
+        for i, line in enumerate(self._tokenized_oasm[".text"]):
+            opcode = 0
             instruction, source, destination = line
             logger.debug(f"parsing code. instruction={instruction}, source={source}, destination={destination}")
             if i % 8 == 0:
                 self.assembly += "\n"
             try:
-                opcode = olaf2.OPCODES[instruction.upper()]
+                opcode = olaf2.Opcodes[instruction].value
             except IndexError:
                 raise SyntaxError(f"opcode \"{instruction}\" not found")
             if source:
                 if source.startswith("0x"):
                     opcode += int(source, 16) << olaf2._SIZEOF_OPCODE 
+                elif source.startswith("$"):
+                    opcode += olaf2.Registers[source[1:]].value << olaf2._SIZEOF_OPCODE
                 else:
-                    opcode += int(source) << olaf2._SIZEOF_OPCODE 
+                    opcode += int(source) << olaf2._SIZEOF_OPCODE   
             if destination:
                 if destination.startswith("0x"):
                     opcode += int(destination, 16) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
                 else:
                     opcode += int(destination) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
-            logger.debug(f"opcode found! {line} is {hex(opcode)}")
+            logger.debug(f"opcode found! {line} is {hex(opcode)} ({opcode})")
             self.assembly += f"{hex(opcode)[2:]} "
 
     def _replace_var_names_with_offsets(self, var_name: str):
