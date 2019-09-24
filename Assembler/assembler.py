@@ -26,13 +26,25 @@ class OLAFAssembler:
             logger.error(f"Oasm file {oasm_file} not found")
         self.should_print = True
         self._regex_line_of_code = re.compile(
-            r"(^\w{2,4})(?:\s(\$?\w)+(?:,\s)(\S+))?$")
+            r"^\s*\t*(\w{2,4})[^\S\r\n]?(?:(\$?\'?\w+\'?)){0,}(?:,[^\S\r\n])?([\S\']+){0,}$")
         self._regex_line_of_data = re.compile(
             r'''(?:str|int)\s(\w+)\s=\s(.+)''')
 
-        self._tokenized_oasm = {".text": list(), ".data": list()}
+        self._tokenized_oasm = {".text": list(), ".data": list(), "functions": dict()}
         self._vars = dict()
         self.assembly = "v2.0 raw"
+
+        # commands that the word comes after the opcode represents 8 bits long data
+        self._opcodes_uses_2nd_param_as_data = [
+            olaf2.Opcodes.OUT, 
+            olaf2.Opcodes.JMP,
+            olaf2.Opcodes.JEQ,
+            olaf2.Opcodes.JNE,
+            olaf2.Opcodes.JBT,
+            olaf2.Opcodes.JST,
+            olaf2.Opcodes.JBE,
+            olaf2.Opcodes.JLE,
+        ] 
 
     def assemble(self, output_file=None, should_print=False) -> str:
         """
@@ -64,6 +76,7 @@ class OLAFAssembler:
                 self.output_file.write(self.assembly)
             except:
                 logger.warn("could not write to a file")
+        self.assembly += "\n"
         return self.assembly
 
     def _tokenize(self):
@@ -83,6 +96,7 @@ class OLAFAssembler:
         """
         logger.debug(f"started parsing {self.oasm_file.name}")
 
+        opcode_address = 1  # we are adding NOP at the beggining 
         current_segment = None
         for line_number, line in enumerate(self.oasm_file.readlines()):
             line = line.rstrip().strip()
@@ -93,7 +107,7 @@ class OLAFAssembler:
             if line.startswith("."):  # this dot represents segment
                 segment = line
                 logger.debug(f"found segment {segment}")
-                if segment not in olaf2.SEGMENTS:
+                if segment not in self._tokenized_oasm.keys():
                     raise SyntaxError(
                         f"invalid segment name {segment} in line {line_number}")
                 try:
@@ -109,9 +123,13 @@ class OLAFAssembler:
                     if not self._regex_line_of_code.match(line):
                         raise SyntaxError(
                             f"invalid length of line in line {line_number} of {self.oasm_file.name}: {line}")
-                    self._tokenized_oasm[".text"].append(
-                        self._regex_line_of_code.search(line).groups()
-                    )
+                    if line.endswith(":"):
+                        self._tokenized_oasm["functions"][line[:-1]] = opcode_address
+                    else:
+                        opcode_address += 1 
+                        self._tokenized_oasm[".text"].append(
+                            self._regex_line_of_code.search(line).groups()
+                        )
                     logger.debug(f"added {self._regex_line_of_code.search(line).groups()}")
                 elif current_segment == ".data":
                     if not self._regex_line_of_data.match(line):
@@ -128,26 +146,41 @@ class OLAFAssembler:
         logger.debug("parsing data")
 
     def _parse_text(self):
-       for i, line in enumerate(self._tokenized_oasm[".text"]):
+        self.assembly += "\n0 "  # the code should start with 0
+        for i, line in enumerate(self._tokenized_oasm[".text"], 1):
+            opcode = 0
             instruction, source, destination = line
-            logger.debug(f"parsing code. instruction={instruction}, source={source}, destination={destination}")
+            logger.debug(f"parsing code. instruction='{instruction}', source='{source}', destination='{destination}'")
             if i % 8 == 0:
                 self.assembly += "\n"
             try:
-                opcode = olaf2.OPCODES[instruction.upper()]
-            except IndexError:
+                opcode = olaf2.Opcodes[instruction].value
+            except KeyError:
                 raise SyntaxError(f"opcode \"{instruction}\" not found")
             if source:
-                if source.startswith("0x"):
+                if olaf2.Opcodes[instruction] in self._opcodes_uses_2nd_param_as_data and not destination:
+                    destination = source
+                    source = "0"
+                if source.lower().startswith("0x"):
                     opcode += int(source, 16) << olaf2._SIZEOF_OPCODE 
+                elif (source.startswith("'") and source.endswith("'")) or \
+                    (source.startswith('"') and source.endswith('"')):
+                    opcode += ord(source[1]) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
+                elif source.startswith("$"):
+                    opcode += olaf2.Registers[source[1:]].value << olaf2._SIZEOF_OPCODE
                 else:
-                    opcode += int(source) << olaf2._SIZEOF_OPCODE 
+                    opcode += int(source) << olaf2._SIZEOF_OPCODE   
             if destination:
                 if destination.startswith("0x"):
                     opcode += int(destination, 16) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
+                elif destination.startswith("@"):
+                    opcode += self._tokenized_oasm["functions"][destination[1:]] << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
+                elif (destination.startswith("'") and destination.endswith("'")) or \
+                    (destination.startswith('"') and destination.endswith('"')):
+                    opcode += ord(destination[1]) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
                 else:
                     opcode += int(destination) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
-            logger.debug(f"opcode found! {line} is {hex(opcode)}")
+            logger.debug(f"opcode found! {line} is {hex(opcode)} ({opcode})")
             self.assembly += f"{hex(opcode)[2:]} "
 
     def _replace_var_names_with_offsets(self, var_name: str):
