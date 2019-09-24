@@ -1,5 +1,5 @@
 .text
-main:
+start:
     ; stack
     MOV $RA, 'A'
     PUSH $RA
@@ -7,7 +7,7 @@ main:
     OUT
     OUT 10
     
-    ; conditionals
+conditions:
     MOV $RA, 1
     OUT '$'
     OUT 'R'
@@ -26,7 +26,7 @@ finally:
     OUT '2'
     OUT 10
 
-    ; addition
+addition:
     OUT '4'
     OUT '+'
     OUT '5'
@@ -36,7 +36,7 @@ finally:
     OUT
     OUT 0, 10
 
-    ; subtraction
+subtraction:
     OUT '5'
     OUT '-'
     OUT '4'
@@ -46,7 +46,7 @@ finally:
     OUT
     OUT 0, 10
 
-    ; multiplication
+multiplication:
     OUT '2'
     OUT '*'
     OUT '4'
@@ -57,7 +57,7 @@ finally:
     OUT
     OUT 0, 10
 
-    ; division
+division:
     OUT 0, '8'
     OUT 0, '/'
     OUT 0, '4'
@@ -68,7 +68,7 @@ finally:
     OUT
     OUT 0, 10
 
-    ; modulo
+modulo:
     OUT 0, '9'
     OUT 0, '%'
     OUT 0, '4'
@@ -79,7 +79,7 @@ finally:
     OUT
     OUT 0, 10
 
-    ; shift left
+shift_left:
     OUT 0, '1'
     OUT 0, '>'
     OUT 0, '>'
@@ -91,7 +91,7 @@ finally:
     OUT
     OUT 0, 10
 
-    ; shift right
+shift_right:
     OUT 0, '8'
     OUT 0, '<'
     OUT 0, '<'
@@ -103,7 +103,7 @@ finally:
     OUT
     OUT 0, 10
 
-    ; XOR
+XOR:
     OUT 0, 0x35
     OUT 0, 94
     OUT 0, 0x37
@@ -114,7 +114,7 @@ finally:
     OUT
     OUT 0, 10
 
-    ; AND
+AND:
     OUT 0, '5'
     OUT 0, '&'
     OUT 0, '3'
@@ -125,7 +125,7 @@ finally:
     OUT
     OUT 0, 10
 
-    ; OR
+OR:
     OUT 0, '5'
     OUT 0, '|'
     OUT 0, '2'
@@ -136,17 +136,15 @@ finally:
     OUT
     OUT 0, 10
 
+reboot:
     CALL 0, @my_func
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    NOP
-    OUT 0, 0x41
-    NOP
-
+    OUT 'b'
+    OUT 'y'
+    OUT 'e'
     RST
+
+; test func after the ends and should test if the cpu
+; can jump to this place
 my_func:
     NOP
     OUT 0, 'y'
