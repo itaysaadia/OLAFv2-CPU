@@ -48,12 +48,14 @@ class Opcodes(Enum):
 
 
 class Registers(Enum):
-    RA = 0
-    RB = 1
-    RC = 2
-    RD = 3
-    IP = 4
-    SP = 5
+    RA  = 0
+    RB  = 1
+    RC  = 2
+    RD  = 3
+    RDI = 4
+    RSI = 5
+    IP  = 6
+    SP  = 7
 
 _SIZEOF_OPCODE = 5
 _SIZEOF_SOURCE = 3
