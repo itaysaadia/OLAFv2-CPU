@@ -8,8 +8,11 @@ start:
     OUT 10
 
     ; ram
-    ;STOR $RA, 2
-    ;LOAD $RB, 0x41
+    MOV $RA, 'B'
+    STOR $RA, 8
+    LOAD $RD, 8
+    OUT
+    OUT 10
     
     _conditions:
         MOV $RA, 1
