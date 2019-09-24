@@ -6,6 +6,13 @@ start:
     POP $RD
     OUT
     OUT 10
+
+    ; ram
+    MOV $RA, 'B'
+    STOR $RA, 8
+    LOAD $RD, 8
+    OUT
+    OUT 10
     
     _conditions:
         MOV $RA, 1

@@ -21,6 +21,10 @@ class Opcodes(Enum):
     # relations
     TEST = 0x0c
 
+    # ram
+    LOAD = 0x0d
+    STOR = 0x0e
+
     # control flow
     JMP  = 0x11  # jump every time
     JEQ  = 0x12  # jump if equals
