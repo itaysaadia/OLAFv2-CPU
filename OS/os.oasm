@@ -9,6 +9,7 @@ main:
     
     ; conditionals
     MOV $RA, 1
+    OUT '$'
     OUT 'R'
     OUT 'A'
     TEST $RA, 2
