@@ -7,147 +7,214 @@ start:
     OUT
     OUT 10
     
-conditions:
-    MOV $RA, 1
-    OUT '$'
-    OUT 'R'
-    OUT 'A'
-    TEST $RA, 2
-    JST @else
-    
-if_RA_bigger:
-    OUT '>'
-    JMP $RA, @finally
-    
-else:
-    OUT '<'
+    _conditions:
+        MOV $RA, 1
+        OUT '$'
+        OUT 'R'
+        OUT 'A'
+        TEST $RA, 2
+        JST @__conditions__else
+        
+        __conditions__if_RA_bigger:
+            OUT '>'
+            JMP @__conditions__finally
+            
+       __conditions__else:
+            OUT '<'
 
-finally:
-    OUT '2'
-    OUT 10
+        __conditions__finally:
+            OUT '2'
+            OUT 10
 
-addition:
-    OUT '4'
-    OUT '+'
-    OUT '5'
-    OUT '='
-    MOV $RD, '4'
-    ADD $RD, 0x5
-    OUT
-    OUT 0, 10
+    _addition:
+        OUT '1'
+        OUT '8'
+        OUT '8'
+        OUT '+'
+        OUT '5'
+        OUT '0'
+        OUT '='
+        MOV $RDI, 188
+        ADD $RDI, 50
+        CALL @print_number
+        OUT 10
 
-subtraction:
-    OUT '5'
-    OUT '-'
-    OUT '4'
-    OUT '='
-    MOV $RD, '5'
-    SUB $RD, 0x4
-    OUT
-    OUT 0, 10
+    _subtraction:
+        OUT '2'
+        OUT '3'
+        OUT '4'
+        OUT '-'
+        OUT '2'
+        OUT '3'
+        OUT '='
+        MOV $RDI, 234
+        SUB $RDI, 23
+        CALL @print_number
+        OUT 10
 
-multiplication:
-    OUT '2'
-    OUT '*'
-    OUT '4'
-    OUT '='
-    MOV $RD, 0x4
-    MUL $RD, 0x2
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
+    _multiplication:
+        OUT '7'
+        OUT '*'
+        OUT '5'
+        OUT '='
+        MOV $RDI, 7
+        MUL $RDI, 5
+        CALL @print_number
+        OUT 10
 
-division:
-    OUT 0, '8'
-    OUT 0, '/'
-    OUT 0, '4'
-    OUT 0, '='
-    MOV $RD, 0x8
-    DIV $RD, 0x4
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
+    _division:
+        OUT 0, '8'
+        OUT 0, '/'
+        OUT 0, '4'
+        OUT 0, '='
+        MOV $RD, 0x8
+        DIV $RD, 0x4
+        CALL @print_number
+        OUT 10
 
-modulo:
-    OUT 0, '9'
-    OUT 0, '%'
-    OUT 0, '4'
-    OUT 0, '='
-    MOV $RD, 0x9
-    MOD $RD, 0x4
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
+    _modulo:
+        OUT 0, '9'
+        OUT 0, '%'
+        OUT 0, '4'
+        OUT 0, '='
+        MOV $RD, 0x9
+        MOD $RD, 0x4
+        ADD $RD, 0x30
+        OUT
+        OUT 10
 
-shift_left:
-    OUT 0, '1'
-    OUT 0, '>'
-    OUT 0, '>'
-    OUT 0, '3'
-    OUT 0, '='
-    MOV $RD, 0x1
-    SHL $RD, 0x3
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
+    _shift_left:
+        OUT 0, '1'
+        OUT 0, '>'
+        OUT 0, '>'
+        OUT 0, '5'
+        OUT 0, '='
+        MOV $RDI, 0x1
+        SHL $RDI, 0x5
+        CALL @print_number
+        OUT 10
 
-shift_right:
-    OUT 0, '8'
-    OUT 0, '<'
-    OUT 0, '<'
-    OUT 0, '3'
-    OUT 0, '='
-    MOV $RD, 0x8
-    SHR $RD, 0x3
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
+    _shift_right:
+        OUT 0, '8'
+        OUT 0, '<'
+        OUT 0, '<'
+        OUT 0, '3'
+        OUT 0, '='
+        MOV $RD, 0x8
+        SHR $RD, 0x3
+        ADD $RD, 0x30
+        OUT
+        OUT 10
 
-XOR:
-    OUT 0, 0x35
-    OUT 0, 94
-    OUT 0, 0x37
-    OUT 0, 61
-    MOV $RD, 0x7
-    XOR $RD, 0x5
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
+    _XOR:
+        OUT 0, '5'
+        OUT 0, '7'
+        OUT 0, '^'
+        OUT 0, '7'
+        OUT 0, '5'
+        OUT 0, '='
+        MOV $RDI, 75
+        XOR $RDI, 57
+        CALL @print_number
+        OUT 10
 
-AND:
-    OUT 0, '5'
-    OUT 0, '&'
-    OUT 0, '3'
-    OUT 0, '='
-    MOV $RD, 0x5
-    AND $RD, 0x3
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
+    _AND:
+        OUT 0, '5'
+        OUT 0, '&'
+        OUT 0, '3'
+        OUT 0, '='
+        MOV $RD, 0x5
+        AND $RD, 0x3
+        ADD $RD, 0x30
+        OUT
+        OUT 10
 
-OR:
-    OUT 0, '5'
-    OUT 0, '|'
-    OUT 0, '2'
-    OUT 0, '='
-    MOV $RD, 0x5
-    OR $RD, 0x2
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
+    _OR:
+        OUT 0, '5'
+        OUT 0, '|'
+        OUT 0, '2'
+        OUT 0, '='
+        MOV $RD, 0x5
+        OR $RD, 0x2
+        ADD $RD, 0x30
+        OUT
+        OUT 10
 
-reboot:
-    CALL 0, @my_func
-    OUT 'b'
-    OUT 'y'
-    OUT 'e'
-    RST
+    _reboot:
+        CALL 0, @my_func
+        OUT 10
+        OUT 'b'
+        OUT 'y'
+        OUT 'e'
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        RST
 
 ; test func after the ends and should test if the cpu
 ; can jump to this place
 my_func:
-    NOP
     OUT 0, 'y'
     OUT 0, 'a'
     OUT 0, 'y'
+    RET
+
+; gets one parameter, a number to print
+print_number:
+    PUSH $RDI
+    TEST $RDI, 100
+    JST @__print_number__ST_100
+    __print_number__BT_100:
+        ; get Xxx digit
+        DIV $RDI, 100
+        ; make printable
+        PUSH $RDI
+        POP $RD
+        ADD $RD, 0x30
+        ; print
+        OUT
+        JMP @__print_number__BT_10
+    
+    __print_number__ST_100:
+        TEST $RDI, 10
+        JST @__print_number__ST_10
+        __print_number__BT_10:
+            POP $RDI
+            PUSH $RDI
+            ; get xXx digit
+            MOD $RDI, 100
+            DIV $RDI, 10
+            ; make printable
+            PUSH $RDI
+            POP $RD
+            ADD $RD, 0x30
+            ; print 
+            OUT
+
+    __print_number__ST_10:
+        ; get xxX digit
+        POP $RDI
+        MOD $RDI, 10
+        ; make printable
+        PUSH $RDI
+        POP $RD
+        ; print 
+        ADD $RD, 0x30
+        OUT
+
+    ; return 
     RET
