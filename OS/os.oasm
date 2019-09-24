@@ -105,20 +105,22 @@ ADD $RD, 0x30
 OUT
 OUT 0, 10
 
-OUT 0, 0x35
-OUT 0, 38
-OUT 0, 0x33
-OUT 0, 61
+; AND
+OUT 0, '5'
+OUT 0, '&'
+OUT 0, '3'
+OUT 0, '='
 MOV $RD, 0x5
 AND $RD, 0x3
 ADD $RD, 0x30
 OUT
 OUT 0, 10
 
-OUT 0, 0x35
-OUT 0, 124
-OUT 0, 0x32
-OUT 0, 61
+; OR
+OUT 0, '5'
+OUT 0, '|'
+OUT 0, '2'
+OUT 0, '='
 MOV $RD, 0x5
 OR $RD, 0x2
 ADD $RD, 0x30
@@ -137,7 +139,7 @@ NOP
 
 RST
 NOP
-OUT 0, 121
-OUT 0, 97
-OUT 0, 121
+OUT 0, 'y'
+OUT 0, 'a'
+OUT 0, 'y'
 RET
