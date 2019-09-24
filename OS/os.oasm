@@ -1,143 +1,154 @@
 .text
-NOP
-; stack
-MOV $RA, 'A'
-PUSH $RA
-POP $RD
-OUT
-; conditionals
-MOV $RA, 1
-TEST $RA, 2
-JST 0, 9
-; if AX == 0
-OUT 'Y'
-JMP $RA, 10
-; else
-OUT 0, 78
-; finally
-OUT 10
+main:
+    ; stack
+    MOV $RA, 'A'
+    PUSH $RA
+    POP $RD
+    OUT
+    OUT 10
+    
+    ; conditionals
+    MOV $RA, 1
+    OUT 'R'
+    OUT 'A'
+    TEST $RA, 2
+    JST @else
+    
+if_RA_bigger:
+    OUT '>'
+    JMP $RA, @finally
+    
+else:
+    OUT '<'
 
-; addition
-OUT '4'
-OUT '+'
-OUT '5'
-OUT '='
-MOV $RD, '4'
-ADD $RD, 0x5
-OUT
-OUT 0, 10
+finally:
+    OUT '2'
+    OUT 10
 
-; subtraction
-OUT '5'
-OUT '-'
-OUT '4'
-OUT '='
-MOV $RD, '5'
-SUB $RD, 0x4
-OUT
-OUT 0, 10
+    ; addition
+    OUT '4'
+    OUT '+'
+    OUT '5'
+    OUT '='
+    MOV $RD, '4'
+    ADD $RD, 0x5
+    OUT
+    OUT 0, 10
 
-; multiplication
-OUT '5'
-OUT '*'
-OUT '4'
-OUT '='
-MOV $RD, 0x4
-MUL $RD, 0x2
-ADD $RD, 0x30
-OUT
-OUT 0, 10
+    ; subtraction
+    OUT '5'
+    OUT '-'
+    OUT '4'
+    OUT '='
+    MOV $RD, '5'
+    SUB $RD, 0x4
+    OUT
+    OUT 0, 10
 
-; division
-OUT 0, '8'
-OUT 0, '/'
-OUT 0, '4'
-OUT 0, '='
-MOV $RD, 0x8
-DIV $RD, 0x4
-ADD $RD, 0x30
-OUT
-OUT 0, 10
+    ; multiplication
+    OUT '2'
+    OUT '*'
+    OUT '4'
+    OUT '='
+    MOV $RD, 0x4
+    MUL $RD, 0x2
+    ADD $RD, 0x30
+    OUT
+    OUT 0, 10
 
-; modulo
-OUT 0, '9'
-OUT 0, '%'
-OUT 0, '4'
-OUT 0, '='
-MOV $RD, 0x9
-MOD $RD, 0x4
-ADD $RD, 0x30
-OUT
-OUT 0, 10
+    ; division
+    OUT 0, '8'
+    OUT 0, '/'
+    OUT 0, '4'
+    OUT 0, '='
+    MOV $RD, 0x8
+    DIV $RD, 0x4
+    ADD $RD, 0x30
+    OUT
+    OUT 0, 10
 
-; shift left
-OUT 0, '1'
-OUT 0, '>'
-OUT 0, '>'
-OUT 0, '3'
-OUT 0, '='
-MOV $RD, 0x1
-SHL $RD, 0x3
-ADD $RD, 0x30
-OUT
-OUT 0, 10
+    ; modulo
+    OUT 0, '9'
+    OUT 0, '%'
+    OUT 0, '4'
+    OUT 0, '='
+    MOV $RD, 0x9
+    MOD $RD, 0x4
+    ADD $RD, 0x30
+    OUT
+    OUT 0, 10
 
-; shift right
-OUT 0, '8'
-OUT 0, '<'
-OUT 0, '<'
-OUT 0, '3'
-OUT 0, '='
-MOV $RD, 0x8
-SHR $RD, 0x3
-ADD $RD, 0x30
-OUT
-OUT 0, 10
+    ; shift left
+    OUT 0, '1'
+    OUT 0, '>'
+    OUT 0, '>'
+    OUT 0, '3'
+    OUT 0, '='
+    MOV $RD, 0x1
+    SHL $RD, 0x3
+    ADD $RD, 0x30
+    OUT
+    OUT 0, 10
 
-; XOR
-OUT 0, 0x35
-OUT 0, 94
-OUT 0, 0x37
-OUT 0, 61
-MOV $RD, 0x7
-XOR $RD, 0x5
-ADD $RD, 0x30
-OUT
-OUT 0, 10
+    ; shift right
+    OUT 0, '8'
+    OUT 0, '<'
+    OUT 0, '<'
+    OUT 0, '3'
+    OUT 0, '='
+    MOV $RD, 0x8
+    SHR $RD, 0x3
+    ADD $RD, 0x30
+    OUT
+    OUT 0, 10
 
-OUT 0, 0x35
-OUT 0, 38
-OUT 0, 0x33
-OUT 0, 61
-MOV $RD, 0x5
-AND $RD, 0x3
-ADD $RD, 0x30
-OUT
-OUT 0, 10
+    ; XOR
+    OUT 0, 0x35
+    OUT 0, 94
+    OUT 0, 0x37
+    OUT 0, 61
+    MOV $RD, 0x7
+    XOR $RD, 0x5
+    ADD $RD, 0x30
+    OUT
+    OUT 0, 10
 
-OUT 0, 0x35
-OUT 0, 124
-OUT 0, 0x32
-OUT 0, 61
-MOV $RD, 0x5
-OR $RD, 0x2
-ADD $RD, 0x30
-OUT
-OUT 0, 10
+    ; AND
+    OUT 0, '5'
+    OUT 0, '&'
+    OUT 0, '3'
+    OUT 0, '='
+    MOV $RD, 0x5
+    AND $RD, 0x3
+    ADD $RD, 0x30
+    OUT
+    OUT 0, 10
 
-CALL 0, 0x71
-NOP
-NOP
-NOP
-NOP
-NOP
-NOP
-OUT 0, 0x41
-NOP
+    ; OR
+    OUT 0, '5'
+    OUT 0, '|'
+    OUT 0, '2'
+    OUT 0, '='
+    MOV $RD, 0x5
+    OR $RD, 0x2
+    ADD $RD, 0x30
+    OUT
+    OUT 0, 10
 
-RST
-NOP
-OUT 0, 121
-OUT 0, 97
-OUT 0, 121
-RET
+    CALL 0, @my_func
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    OUT 0, 0x41
+    NOP
+
+    RST
+my_func:
+    NOP
+    OUT 0, 'y'
+    OUT 0, 'a'
+    OUT 0, 'y'
+    RET
