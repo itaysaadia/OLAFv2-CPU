@@ -8,9 +8,10 @@ start:
     OUT 10
 
     ; ram
-    MOV $RA, 'B'
-    STOR $RA, 8
-    LOAD $RD, 8
+    MOV $RB, 8
+    MOV $RD, 'B'
+    STOR $RD
+    LOAD $RD
     OUT
     OUT 10
     
@@ -153,23 +154,8 @@ start:
         OUT 'b'
         OUT 'y'
         OUT 'e'
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
+        MOV $RDI, 0xf0
+        CALL @blocking_read
         RST
 
 ; test func after the ends and should test if the cpu
@@ -225,3 +211,20 @@ print_number:
 
     ; return 
     RET
+
+; gets 1 argument, the initial location for the data
+blocking_read:
+    PUSH $RDI
+    POP $RB
+    __blocking_read__get_char:
+        GET $RC
+        TEST $RC, 0
+        JEQ @__blocking_read__finally
+        __blocking_read__not_zero:
+            STOR $RC
+            ADD $RB, 1
+        __blocking_read__finally:
+        TEST $RC, 10
+        JNE @__blocking_read__get_char
+    RET
+    
