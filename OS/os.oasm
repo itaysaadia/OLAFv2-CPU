@@ -15,6 +15,35 @@ start:
     OUT
     OUT 10
     
+    ; I/O   
+    MOV $RDI, 1
+    OUT 'W'
+    OUT 'h'
+    OUT 'a'
+    OUT 't'
+    OUT '''
+    OUT 's'
+    OUT 0x20
+    OUT 'y'
+    OUT 'o'
+    OUT 'u'
+    OUT 'r'
+    OUT 0x20
+    OUT 'n'
+    OUT 'a'
+    OUT 'm'
+    OUT 'e'
+    OUT '?'
+    OUT 0x20
+    CALL @blocking_read
+    OUT 'H'
+    OUT 'e'
+    OUT 'l'
+    OUT 'l'
+    OUT 'o'
+    OUT 0x20
+    CALL @print
+
     _conditions:
         MOV $RA, 1
         OUT '$'
@@ -217,14 +246,32 @@ blocking_read:
     PUSH $RDI
     POP $RB
     __blocking_read__get_char:
-        GET $RC
-        TEST $RC, 0
-        JEQ @__blocking_read__finally
+        GET $RD
+        TEST $RD, 0
+        JEQ @__blocking_read__get_char
+        OUT
+        TEST $RD, 10
+        JEQ @__blocking_read__return
         __blocking_read__not_zero:
-            STOR $RC
+            STOR $RD
             ADD $RB, 1
-        __blocking_read__finally:
-        TEST $RC, 10
-        JNE @__blocking_read__get_char
-    RET
+        JMP @__blocking_read__get_char
+    __blocking_read__return:
+        RET
     
+; gets 1 argument, the initial position of the data
+print:
+    PUSH $RDI
+    POP $RB
+
+    __print__get_char:
+        LOAD $RD
+        TEST $RD, 0
+        JEQ @__print__ret
+        __print__not_zero:
+            OUT
+            ADD $RB, 1
+        JMP @__print__get_char
+    __print__ret:
+    OUT 10
+    RET
