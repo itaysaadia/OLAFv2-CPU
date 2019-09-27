@@ -178,6 +178,8 @@ class OLAFAssembler:
                 elif (destination.startswith("'") and destination.endswith("'")) or \
                     (destination.startswith('"') and destination.endswith('"')):
                     opcode += ord(destination[1]) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
+                elif destination.startswith("$"):
+                    opcode += olaf2.Registers[destination[1:]].value << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
                 else:
                     opcode += int(destination) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
             logger.debug(f"opcode found! {line} is {hex(opcode)} ({opcode})")

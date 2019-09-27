@@ -16,7 +16,6 @@ start:
     OUT 10
     
     ; I/O   
-    MOV $RDI, 1
     OUT 'W'
     OUT 'h'
     OUT 'a'
@@ -35,6 +34,7 @@ start:
     OUT 'e'
     OUT '?'
     OUT 0x20
+    MOV $RDI, 1
     CALL @blocking_read
     OUT 'H'
     OUT 'e'
@@ -61,6 +61,28 @@ start:
 
         __conditions__finally:
             OUT '2'
+            OUT 10
+
+    _compare_registers:
+        MOV $RA, 4
+        MOV $RC, 3
+        OUT '$'
+        OUT 'R'
+        OUT 'A'
+        TEST $RA, $RC
+        JST @__compare_registers__else
+        
+        __compare_registers__if_RA_bigger:
+            OUT '>'
+            JMP @__compare_registers__finally
+            
+       __compare_registers__else:
+            OUT '<'
+
+        __compare_registers__finally:
+            OUT '$'
+            OUT 'R'
+            OUT 'C'
             OUT 10
 
     _addition:
