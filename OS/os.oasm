@@ -1,5 +1,13 @@
 .text
 
+OUT 'o'
+OUT 'l'
+OUT 'a'
+OUT 'f'
+OUT 'v'
+OUT '2'
+OUT 10
+
 boot_msg:
     OUT 'H'
     OUT 'e'
