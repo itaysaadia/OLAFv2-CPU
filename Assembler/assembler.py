@@ -3,10 +3,11 @@ import re
 import sys
 
 import olaf2
+import oasm
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.debug("olaf assembler starting")
 
 
@@ -25,59 +26,83 @@ class OLAFAssembler:
         except FileNotFoundError:
             logger.error(f"Oasm file {oasm_file} not found")
         self.should_print = True
-        self._regex_line_of_code = re.compile(
-            r"^\s*\t*(\w{2,4})[^\S\r\n]?(?:(\$?\'?\w+\'?)){0,}(?:,[^\S\r\n])?([\S\']+){0,}$")
-        self._regex_line_of_data = re.compile(
-            r'''(?:str|int)\s(\w+)\s=\s(.+)''')
 
-        self._tokenized_oasm = {".text": list(), ".data": list(), "functions": dict()}
-        self._vars = dict()
-        self.assembly = "v2.0 raw"
+        self._tokenized_oasm = {
+            ".text": list(),
+            ".data": list(), 
+            ".rodata": list(), 
+        }
+        self._variables = dict()
+        self._functions = dict()
+        self.rom = "v2.0 raw\n0 "
+        self.ram = "v2.0 raw\n"
 
-        # commands that the word comes after the opcode represents 8 bits long data
-        self._opcodes_uses_2nd_param_as_data = [
-            olaf2.Opcodes.OUT, 
-            olaf2.Opcodes.JMP,
-            olaf2.Opcodes.JEQ,
-            olaf2.Opcodes.JNE,
-            olaf2.Opcodes.JBT,
-            olaf2.Opcodes.JST,
-            olaf2.Opcodes.JBE,
-            olaf2.Opcodes.JLE,
-        ] 
-
-    def assemble(self, output_file=None, should_print=False) -> str:
+    def assemble(self, output_rom="BOOT.rom", output_ram="initram.ram", should_print=False) -> str:
         """
-        :param output_file: (optional) output file for the buffer of disassembly
+        :param output_rom: (optional) output file for the buffer of disassembly
         :param should_print: (optional) if True, prints the assembly buffer in the end 
 
         start the assembling process.
         prints is should_print is True.
-        writes to a file if output_file is set.
+        writes to a file if output_rom is set.
         returns a string buffer of ascii-printable "assembly"
         """
 
+        logger.info(f"started parsing {self.oasm_file.name}")
         try:
             self._tokenize()
         except SyntaxError as e:
             logger.error("the oasm file is incorrect")
             raise e
-        self._parse_data()
-        self._parse_text()
+
+        # parsing data
+        address_of_variable = 0
+        for line in self._tokenized_oasm[".rodata"]:
+            self.ram += line.parse()
+            line.address = address_of_variable
+            self._variables[line.name] = line
+            address_of_variable += len(line)
+        self.ram += "\n"
+        self._variables["DATA_START"] = oasm.OasmData("int", "DATA_START", address_of_variable + 1)
+        self._variables["DATA_START"].address = address_of_variable + 1
+
+        print("==== RAM ====")
         if self.should_print:
-            print(self.assembly)
-        if output_file:
-            try:
-                self.output_file = open(output_file, "w") if type(
-                    output_file) is str else output_file
-            except:
-                logger.error(f"Output file {output_file} could not be opened")
-            try:
-                self.output_file.write(self.assembly)
-            except:
-                logger.warn("could not write to a file")
-        self.assembly += "\n"
-        return self.assembly
+            print(self.ram)
+
+        try:
+            self.output_ram = open(output_ram, "w") if type(
+                output_ram) is str else output_ram
+        except:
+            logger.error(f"Output file {output_ram} could not be opened")
+        try:
+            self.output_ram.write(self.ram)
+        except:
+            logger.warn("could not write to a file")
+
+        # parse text
+        print("==== ROM ====")
+
+        for line in self._tokenized_oasm[".text"]:
+            line.functions = self._functions
+            line.variables = self._variables
+            self.rom += line.parse()
+            
+        if self.should_print:
+            print(self.rom)
+
+        try:
+            self.output_rom = open(output_rom, "w") if type(
+                output_rom) is str else output_rom
+        except:
+            logger.error(f"Output file {output_rom} could not be opened")
+        try:
+            self.output_rom.write(self.rom)
+        except:
+            logger.warn("could not write to a file")
+        self.rom += "\n"
+
+        return self.rom
 
     def _tokenize(self):
         """
@@ -94,10 +119,10 @@ class OLAFAssembler:
             }
         }
         """
-        logger.debug(f"started parsing {self.oasm_file.name}")
-
+        logger.info("tokenizing")
         opcode_address = 1  # we are adding NOP at the beggining 
-        current_segment = None
+        current_segment_handler = oasm.Oasm
+        segment = ""
         for line_number, line in enumerate(self.oasm_file.readlines()):
             line = line.rstrip().strip()
             if not line or line.startswith(";"):
@@ -111,85 +136,40 @@ class OLAFAssembler:
                     raise SyntaxError(
                         f"invalid segment name {segment} in line {line_number}")
                 try:
-                    current_segment = segment
+                    current_segment_handler = oasm.segments[segment]
                 except IndexError:
                     raise SyntaxError(
                         f"error locating segment {segment} in line {line_number}")
             else:
-                if current_segment is None:
+                if current_segment_handler is None:
                     raise SyntaxError(
                         "the oasm should start with segment name")
-                elif current_segment == ".text":
-                    if not self._regex_line_of_code.match(line):
-                        raise SyntaxError(
-                            f"invalid length of line in line {line_number} of {self.oasm_file.name}: {line}")
+                
+                if not current_segment_handler.regex.match(line):
+                    raise SyntaxError(
+                        f"invalid length of line in line {line_number} of {self.oasm_file.name}: {line}")
+                elif segment == ".text":
+                    opcode, source, destination = current_segment_handler.regex.search(line).groups()
                     if line.endswith(":"):
-                        self._tokenized_oasm["functions"][line[:-1]] = opcode_address
+                        self._functions[line[:-1]] = opcode_address
                     else:
-                        opcode_address += 1 
                         self._tokenized_oasm[".text"].append(
-                            self._regex_line_of_code.search(line).groups()
+                            oasm.OasmText(opcode_address, opcode, source, destination)
                         )
-                    logger.debug(f"added {self._regex_line_of_code.search(line).groups()}")
-                elif current_segment == ".data":
-                    if not self._regex_line_of_data.match(line):
-                        raise SyntaxError(
-                            f"invalid line in {line_number} of {self.oasm_file.name}: {line}")
-                    self._tokenized_oasm[".data"].append(
-                        self._regex_line_of_data.search(line).groups()
+                        opcode_address += 1 
+                elif segment ==".rodata":
+                    var_type, var_name, var_value = current_segment_handler.regex.search(line).groups()
+                    self._tokenized_oasm[".rodata"].append(
+                        oasm.OasmRoData(var_type, var_name, var_value)
                     )
-                    logger.debug(f"added {self._regex_line_of_data.search(line).groups()}")
                 else:
-                    raise SyntaxError(f"Unknown segment {current_segment}")
-
-    def _parse_data(self):
-        logger.debug("parsing data")
-
-    def _parse_text(self):
-        self.assembly += "\n0 "  # the code should start with 0
-        for i, line in enumerate(self._tokenized_oasm[".text"], 1):
-            opcode = 0
-            instruction, source, destination = line
-            logger.debug(f"parsing code. instruction='{instruction}', source='{source}', destination='{destination}'")
-            if i % 8 == 0:
-                self.assembly += "\n"
-            try:
-                opcode = olaf2.Opcodes[instruction].value
-            except KeyError:
-                raise SyntaxError(f"opcode \"{instruction}\" not found")
-            if source:
-                if olaf2.Opcodes[instruction] in self._opcodes_uses_2nd_param_as_data and not destination:
-                    destination = source
-                    source = "0"
-                if source.lower().startswith("0x"):
-                    opcode += int(source, 16) << olaf2._SIZEOF_OPCODE 
-                elif (source.startswith("'") and source.endswith("'")) or \
-                    (source.startswith('"') and source.endswith('"')):
-                    opcode += ord(source[1]) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
-                elif source.startswith("$"):
-                    opcode += olaf2.Registers[source[1:]].value << olaf2._SIZEOF_OPCODE
-                else:
-                    opcode += int(source) << olaf2._SIZEOF_OPCODE   
-            if destination:
-                if destination.startswith("0x"):
-                    opcode += int(destination, 16) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
-                elif destination.startswith("@"):
-                    opcode += self._tokenized_oasm["functions"][destination[1:]] << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
-                elif (destination.startswith("'") and destination.endswith("'")) or \
-                    (destination.startswith('"') and destination.endswith('"')):
-                    opcode += ord(destination[1]) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
-                else:
-                    opcode += int(destination) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
-            logger.debug(f"opcode found! {line} is {hex(opcode)} ({opcode})")
-            self.assembly += f"{hex(opcode)[2:]} "
-
-    def _replace_var_names_with_offsets(self, var_name: str):
-        pass
+                    raise SyntaxError(f"Unknown segment {current_segment_handler}")
+                logger.debug(f"added {current_segment_handler.regex.search(line).groups()}")
 
 
 if __name__ == "__main__":
-    if 3 != len(sys.argv):
+    if 2 != len(sys.argv):
         logger.error(f"Usage {sys.argv[0]} OASM_FILE")
         exit(-1)
     assembler = OLAFAssembler(sys.argv[1])
-    assembler.assemble(output_file=sys.argv[2])
+    assembler.assemble(output_rom="OS/BOOT.rom", output_ram="OS/initram.ram")

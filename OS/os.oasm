@@ -1,171 +1,65 @@
+; This is the Operating System for OLAFv2, written by Itay Saadia (2019).
+
+.rodata
+; this section will create an image of the RAM that contains a block of 
+; data in the beginning of the memory.
+
+; strings 
+string OS_NAME = "OLAFv2"
+string GET_USERNAME = "enter username: "
+
+; commands
+string ls = "ls"
+string rm = "rm"
+string cat = "cat"
+string edit = "edit"
+
 .text
-start:
-    ; stack
-    MOV $RA, 'A'
-    PUSH $RA
-    POP $RD
-    OUT
+
+boot_msg:
+    MOV $RDI, #OS_NAME
+    CALL @print
     OUT 10
 
-    ; ram
-    MOV $RB, 8
-    MOV $RD, 'B'
-    STOR $RD
-    LOAD $RD
-    OUT
-    OUT 10
+get_username:
+    MOV $RDI, #GET_USERNAME
+    CALL @print
+    MOV $RA, #DATA_START
+    CALL @blocking_read
+
+prompt:
+    MOV $RDI, 0
+    CALL @print
+    OUT '@'
+    OUT 'O'
+    OUT 'L'
+    OUT 'A'
+    OUT 'F'
+    OUT 'v'
+    OUT '2'
+    OUT '#'
+    OUT 0x20
+
+read_command:
+    MOV $RDI, 0x90
+    CALL @blocking_read
+
+parse_command:
+    MOV $RDI, 0x90
+    MOV $RSI, #ls
+    CALL @strcmp
+    TEST $RA, 0
+    JEQ @shutdown
+    JMP @prompt
+
+shutdown:
+    OUT 'b'
+    OUT 'y'
+    OUT 'b'
+    CALL @blocking_read
+    RST
     
-    _conditions:
-        MOV $RA, 1
-        OUT '$'
-        OUT 'R'
-        OUT 'A'
-        TEST $RA, 2
-        JST @__conditions__else
-        
-        __conditions__if_RA_bigger:
-            OUT '>'
-            JMP @__conditions__finally
-            
-       __conditions__else:
-            OUT '<'
-
-        __conditions__finally:
-            OUT '2'
-            OUT 10
-
-    _addition:
-        OUT '1'
-        OUT '8'
-        OUT '8'
-        OUT '+'
-        OUT '5'
-        OUT '0'
-        OUT '='
-        MOV $RDI, 188
-        ADD $RDI, 50
-        CALL @print_number
-        OUT 10
-
-    _subtraction:
-        OUT '2'
-        OUT '3'
-        OUT '4'
-        OUT '-'
-        OUT '2'
-        OUT '3'
-        OUT '='
-        MOV $RDI, 234
-        SUB $RDI, 23
-        CALL @print_number
-        OUT 10
-
-    _multiplication:
-        OUT '7'
-        OUT '*'
-        OUT '5'
-        OUT '='
-        MOV $RDI, 7
-        MUL $RDI, 5
-        CALL @print_number
-        OUT 10
-
-    _division:
-        OUT 0, '8'
-        OUT 0, '/'
-        OUT 0, '4'
-        OUT 0, '='
-        MOV $RD, 0x8
-        DIV $RD, 0x4
-        CALL @print_number
-        OUT 10
-
-    _modulo:
-        OUT 0, '9'
-        OUT 0, '%'
-        OUT 0, '4'
-        OUT 0, '='
-        MOV $RD, 0x9
-        MOD $RD, 0x4
-        ADD $RD, 0x30
-        OUT
-        OUT 10
-
-    _shift_left:
-        OUT 0, '1'
-        OUT 0, '>'
-        OUT 0, '>'
-        OUT 0, '5'
-        OUT 0, '='
-        MOV $RDI, 0x1
-        SHL $RDI, 0x5
-        CALL @print_number
-        OUT 10
-
-    _shift_right:
-        OUT 0, '8'
-        OUT 0, '<'
-        OUT 0, '<'
-        OUT 0, '3'
-        OUT 0, '='
-        MOV $RD, 0x8
-        SHR $RD, 0x3
-        ADD $RD, 0x30
-        OUT
-        OUT 10
-
-    _XOR:
-        OUT 0, '5'
-        OUT 0, '7'
-        OUT 0, '^'
-        OUT 0, '7'
-        OUT 0, '5'
-        OUT 0, '='
-        MOV $RDI, 75
-        XOR $RDI, 57
-        CALL @print_number
-        OUT 10
-
-    _AND:
-        OUT 0, '5'
-        OUT 0, '&'
-        OUT 0, '3'
-        OUT 0, '='
-        MOV $RD, 0x5
-        AND $RD, 0x3
-        ADD $RD, 0x30
-        OUT
-        OUT 10
-
-    _OR:
-        OUT 0, '5'
-        OUT 0, '|'
-        OUT 0, '2'
-        OUT 0, '='
-        MOV $RD, 0x5
-        OR $RD, 0x2
-        ADD $RD, 0x30
-        OUT
-        OUT 10
-
-    _reboot:
-        CALL 0, @my_func
-        OUT 10
-        OUT 'b'
-        OUT 'y'
-        OUT 'e'
-        MOV $RDI, 0xf0
-        CALL @blocking_read
-        RST
-
-; test func after the ends and should test if the cpu
-; can jump to this place
-my_func:
-    OUT 0, 'y'
-    OUT 0, 'a'
-    OUT 0, 'y'
-    RET
-
+; get tow arguments, 2 pointers to strings to compare
 ; gets one parameter, a number to print
 print_number:
     PUSH $RDI
@@ -181,7 +75,6 @@ print_number:
         ; print
         OUT
         JMP @__print_number__BT_10
-    
     __print_number__ST_100:
         TEST $RDI, 10
         JST @__print_number__ST_10
@@ -197,7 +90,6 @@ print_number:
             ADD $RD, 0x30
             ; print 
             OUT
-
     __print_number__ST_10:
         ; get xxX digit
         POP $RDI
@@ -208,23 +100,68 @@ print_number:
         ; print 
         ADD $RD, 0x30
         OUT
-
     ; return 
     RET
+
 
 ; gets 1 argument, the initial location for the data
 blocking_read:
     PUSH $RDI
     POP $RB
     __blocking_read__get_char:
-        GET $RC
-        TEST $RC, 0
-        JEQ @__blocking_read__finally
+        GET $RD
+        TEST $RD, 0
+        JEQ @__blocking_read__get_char
+        OUT
+        TEST $RD, 10
+        JEQ @__blocking_read__return
         __blocking_read__not_zero:
-            STOR $RC
+            STOR $RD
             ADD $RB, 1
-        __blocking_read__finally:
-        TEST $RC, 10
-        JNE @__blocking_read__get_char
-    RET
+            JMP @__blocking_read__get_char
+    __blocking_read__return:
+       RET
     
+; gets 1 argument, the initial position of the data
+print:
+    PUSH $RDI
+    POP $RB
+    __print__get_char:
+        LOAD $RD
+        TEST $RD, 0
+        JEQ @__print__ret
+        __print__not_zero:
+            OUT
+            ADD $RB, 1
+        JMP @__print__get_char
+    __print__ret:
+    RET
+
+; get 2 arguments, 2 addresses of null - terminated strings to compare
+strcmp:
+    __strcmp__load_first_value:
+        PUSH $RDI
+        POP $RB
+        LOAD $RA
+        ADD $RDI, 1
+    __strcmp__load_second_value:
+        PUSH $RSI
+        POP $RB
+        LOAD $RC
+        ADD $RSI, 1
+    __strcmp__check_if_equals:
+        TSTR $RA, $RC
+        JNE @__strcmp__not_equals
+    __strcmp__check_if_end:
+        ; if it is true it's means that $RC is also \00 because if we got here they both equal
+        TEST $RA, 0
+        JEQ @__strcmp__equals
+        JMP @__strcmp__load_first_value
+    __strcmp__equals:
+        MOV $RA, 1
+        JMP @__strcmp__exit
+    __strcmp__not_equals:
+        MOV $RA, 0
+        JMP @__strcmp__exit
+    __strcmp__exit:
+        RET

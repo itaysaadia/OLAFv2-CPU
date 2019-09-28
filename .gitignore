@@ -3,3 +3,5 @@
 *.txt
 .vscode
 */__pycache__/
+
+OS/exploit.ram

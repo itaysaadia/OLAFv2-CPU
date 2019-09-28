@@ -19,11 +19,12 @@ class Opcodes(Enum):
     OR   = 0x0b  # bitwise and
 
     # relations
-    TEST = 0x0c
+    TEST = 0x0c  # update the flags with substraction of a register and a constant
+    TSTR = 0x0d  # update the flags with substraction of two registers
 
     # ram
-    LOAD = 0x0d
-    STOR = 0x0e
+    LOAD = 0x0e
+    STOR = 0x0f
 
     # control flow
     JMP  = 0x11  # jump every time
