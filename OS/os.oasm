@@ -14,44 +14,22 @@ string rm = "rm"
 string cat = "cat"
 string edit = "edit"
 
-; constants
-int NEWLINE = 10
-    
-
 .text
 
 boot_msg:
-    OUT 'O'
-    OUT 'L'
-    OUT 'A'
-    OUT 'F'
-    OUT 'v'
-    OUT '2'
+    MOV $RDI, #OS_NAME
+    CALL @print
     OUT 10
 
 get_username:
-    OUT 'e'
-    OUT 'n'
-    OUT 't'
-    OUT 'e'
-    OUT 'r'
-    OUT 0x20
-    OUT 'u'
-    OUT 's'
-    OUT 'e'
-    OUT 'r'
-    OUT 'n'
-    OUT 'a'
-    OUT 'm'
-    OUT 'e'
-    OUT ':'
-    OUT 0x20
-    MOV $RA, 0
+    MOV $RDI, #GET_USERNAME
+    CALL @print
+    MOV $RA, #DATA_START
     CALL @blocking_read
 
 prompt:
     MOV $RDI, 0
-    CALL @prnt
+    CALL @print
     OUT '@'
     OUT 'O'
     OUT 'L'
@@ -63,13 +41,14 @@ prompt:
     OUT 0x20
 
 read_command:
-    MOV $RDI, 0x30
+    MOV $RDI, 0x90
     CALL @blocking_read
 
 parse_command:
-    MOV $RB, 0x30
-    LOAD $RC
-    TEST $RC, 'r'
+    MOV $RDI, 0x90
+    MOV $RSI, #ls
+    CALL @strcmp
+    TEST $RA, 0
     JEQ @shutdown
     JMP @prompt
 
@@ -77,6 +56,7 @@ shutdown:
     OUT 'b'
     OUT 'y'
     OUT 'b'
+    CALL @blocking_read
     RST
     
 ; get tow arguments, 2 pointers to strings to compare
@@ -176,7 +156,7 @@ strcmp:
         ; if it is true it's means that $RC is also \00 because if we got here they both equal
         TEST $RA, 0
         JEQ @__strcmp__equals
-        JMP __strcmp__load_first_value
+        JMP @__strcmp__load_first_value
     __strcmp__equals:
         MOV $RA, 1
         JMP @__strcmp__exit
