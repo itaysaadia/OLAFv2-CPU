@@ -1,40 +1,57 @@
 ; This is the Operating System for OLAFv2, written by Itay Saadia (2019).
 
 .rodata
-    ; this section will create an image of the RAM that contains a block of 
-    ; data in the beginning of the memory.
+; this section will create an image of the RAM that contains a block of 
+; data in the beginning of the memory.
 
-    ; stings 
-    string OS_NAME = "OLAFv2"
-    string GET_USERNAME = "enter username: "
-    
-    ; commands
-    string ls = "ls"
-    string rm = "rm"
-    string cat = "cat"
-    string edit = "edit"
+; strings 
+string OS_NAME = "OLAFv2"
+string GET_USERNAME = "enter username: "
 
-    ; constants
-    int NEWLINE = 10
+; commands
+string ls = "ls"
+string rm = "rm"
+string cat = "cat"
+string edit = "edit"
+
+; constants
+int NEWLINE = 10
     
-.data
-; this section 
 
 .text
 
 boot_msg:
-    ; TODO add OS_NAME
+    OUT 'O'
+    OUT 'L'
+    OUT 'A'
+    OUT 'F'
+    OUT 'v'
+    OUT '2'
     OUT 10
 
 get_username:
-    ; TODO ADD GET_USERNAME
+    OUT 'e'
+    OUT 'n'
+    OUT 't'
+    OUT 'e'
+    OUT 'r'
+    OUT 0x20
+    OUT 'u'
+    OUT 's'
+    OUT 'e'
+    OUT 'r'
+    OUT 'n'
+    OUT 'a'
+    OUT 'm'
+    OUT 'e'
+    OUT ':'
     OUT 0x20
     MOV $RA, 0
     CALL @blocking_read
 
 prompt:
     MOV $RDI, 0
-    CALL @print
+    CALL @prnt
     OUT '@'
     OUT 'O'
     OUT 'L'

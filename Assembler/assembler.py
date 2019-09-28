@@ -29,16 +29,16 @@ class OLAFAssembler:
 
         self._tokenized_oasm = {".text": list(), ".data": list(), ".rodata": list(), "functions": dict()}
         self._vars = dict()
-        self.assembly = "v2.0 raw\n0 "
+        self.rom = "v2.0 raw\n0 "
 
-    def assemble(self, output_file=None, should_print=False) -> str:
+    def assemble(self, output_rom="BOOT.rom", output_ram="ramfs.ram", should_print=False) -> str:
         """
-        :param output_file: (optional) output file for the buffer of disassembly
+        :param output_rom: (optional) output file for the buffer of disassembly
         :param should_print: (optional) if True, prints the assembly buffer in the end 
 
         start the assembling process.
         prints is should_print is True.
-        writes to a file if output_file is set.
+        writes to a file if output_rom is set.
         returns a string buffer of ascii-printable "assembly"
         """
 
@@ -49,25 +49,23 @@ class OLAFAssembler:
             logger.error("the oasm file is incorrect")
             raise e
 
-        for segment in [".rodata", ".data", ".text"]:
-            for line in self._tokenized_oasm[segment]:
-                self.assembly += line.parse()
-
+        for line in self._tokenized_oasm[".text"]:
+            self.rom += line.parse()
+            
         if self.should_print:
-            print(self.assembly)
+            print(self.rom)
 
-        if output_file:
-            try:
-                self.output_file = open(output_file, "w") if type(
-                    output_file) is str else output_file
-            except:
-                logger.error(f"Output file {output_file} could not be opened")
-            try:
-                self.output_file.write(self.assembly)
-            except:
-                logger.warn("could not write to a file")
-        self.assembly += "\n"
-        return self.assembly
+        try:
+            self.output_rom = open(output_rom, "w") if type(
+                output_rom) is str else output_rom
+        except:
+            logger.error(f"Output file {output_rom} could not be opened")
+        try:
+            self.output_rom.write(self.rom)
+        except:
+            logger.warn("could not write to a file")
+        self.rom += "\n"
+        return self.rom
 
     def _tokenize(self):
         """
@@ -122,10 +120,10 @@ class OLAFAssembler:
                         self._tokenized_oasm[".text"].append(
                             oasm.OasmText(line_number, opcode, source, destination)
                         )
-                elif segment in [".rodata", ".data"]:
+                elif segment ==".rodata":
                     var_type, var_name, var_value = current_segment_handler.regex.search(line).groups()
-                    self._tokenized_oasm[".data"].append(
-                        current_segment_handler()
+                    self._tokenized_oasm[".rodata"].append(
+                        oasm.OasmRoData(var_type, var_name, var_value)
                     )
                 else:
                     raise SyntaxError(f"Unknown segment {current_segment_handler}")
@@ -135,8 +133,8 @@ class OLAFAssembler:
 
 
 if __name__ == "__main__":
-    if 3 != len(sys.argv):
+    if 2 != len(sys.argv):
         logger.error(f"Usage {sys.argv[0]} OASM_FILE")
         exit(-1)
     assembler = OLAFAssembler(sys.argv[1])
-    assembler.assemble(output_file=sys.argv[2])
+    assembler.assemble(output_rom="BOOT.rom", output_ram="BOOT.ram")
