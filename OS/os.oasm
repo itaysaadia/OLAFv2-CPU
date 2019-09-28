@@ -1,42 +1,35 @@
+; This is the Operating System for OLAFv2, written by Itay Saadia (2019).
+
+.rodata
+    ; this section will create an image of the RAM that contains a block of 
+    ; data in the beginning of the memory.
+
+    ; stings 
+    string OS_NAME = "OLAFv2"
+    string GET_USERNAME = "enter username: "
+    
+    ; commands
+    string ls = "ls"
+    string rm = "rm"
+    string cat = "cat"
+    string edit = "edit"
+
+    ; constants
+    int NEWLINE = 10
+    
+.data
+; this section 
+
 .text
 
-OUT 'o'
-OUT 'l'
-OUT 'a'
-OUT 'f'
-OUT 'v'
-OUT '2'
-OUT 10
-
 boot_msg:
-    OUT 'H'
-    OUT 'e'
-    OUT 'l'
-    OUT 'l'
-    OUT 'o'
-    OUT 0x20
-    OUT 'u'
-    OUT 's'
-    OUT 'e'
-    OUT 'r'
-    OUT '!'
+    ; TODO add OS_NAME
     OUT 10
-    OUT 'e'
-    OUT 'n'
-    OUT 't'
-    OUT 'e'
-    OUT 'r'
+
+get_username:
+    ; TODO ADD GET_USERNAME
     OUT 0x20
-    OUT 'u'
-    OUT 's'
-    OUT 'e'
-    OUT 'r'
-    OUT 'n'
-    OUT 'a'
-    OUT 'm'
-    OUT 'e'
-    OUT ':'
-    OUT 0x20
+    MOV $RA, 0
     CALL @blocking_read
 
 prompt:
@@ -85,7 +78,6 @@ print_number:
         ; print
         OUT
         JMP @__print_number__BT_10
-    
     __print_number__ST_100:
         TEST $RDI, 10
         JST @__print_number__ST_10
@@ -101,7 +93,6 @@ print_number:
             ADD $RD, 0x30
             ; print 
             OUT
-
     __print_number__ST_10:
         ; get xxX digit
         POP $RDI
@@ -112,9 +103,9 @@ print_number:
         ; print 
         ADD $RD, 0x30
         OUT
-
     ; return 
     RET
+
 
 ; gets 1 argument, the initial location for the data
 blocking_read:
@@ -130,9 +121,9 @@ blocking_read:
         __blocking_read__not_zero:
             STOR $RD
             ADD $RB, 1
-        JMP @__blocking_read__get_char
+            JMP @__blocking_read__get_char
     __blocking_read__return:
-        RET
+       RET
     
 ; gets 1 argument, the initial position of the data
 print:
@@ -148,3 +139,32 @@ print:
         JMP @__print__get_char
     __print__ret:
     RET
+
+; get 2 arguments, 2 addresses of null - terminated strings to compare
+strcmp:
+    __strcmp__load_first_value:
+        PUSH $RDI
+        POP $RB
+        LOAD $RA
+        ADD $RDI, 1
+    __strcmp__load_second_value:
+        PUSH $RSI
+        POP $RB
+        LOAD $RC
+        ADD $RSI, 1
+    __strcmp__check_if_equals:
+        TSTR $RA, $RC
+        JNE @__strcmp__not_equals
+    __strcmp__check_if_end:
+        ; if it is true it's means that $RC is also \00 because if we got here they both equal
+        TEST $RA, 0
+        JEQ @__strcmp__equals
+        JMP __strcmp__load_first_value
+    __strcmp__equals:
+        MOV $RA, 1
+        JMP @__strcmp__exit
+    __strcmp__not_equals:
+        MOV $RA, 0
+        JMP @__strcmp__exit
+    __strcmp__exit:
+        RET
