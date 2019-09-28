@@ -19,9 +19,17 @@ class Oasm(ABC):
 class OasmData(Oasm):
     regex = re.compile(
         r"(string|int)\s(\w+)\s=\s(.+)")
-    def __init__(self):
+    def __init__(self, var_type, name, value):
+        self.var_type = var_type
+        self.name = name
+        self.value = value
+
+    def parse(self):
         pass
-    
+
+    def __len__(self):
+        return len(self.value) + 1 if self.var_type == "string" else 1
+            
 
 class OasmText(Oasm):
     regex = re.compile(
@@ -79,12 +87,12 @@ class OasmText(Oasm):
                 instruction += olaf2.Registers[self.destination[1:]].value << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
             else:
                 instruction += int(self.destination) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
-        logger.debug(f"instruction found! {self.line} is {hex(instruction)} ({instruction})")
+        logger.debug(f"instruction found! {self} is {hex(instruction)} ({instruction})")
         self.assembly += f"{hex(instruction)[2:]} "
         return self.assembly
 
     def __str__(self):
-        return f"line={self.line} opcode='{self.opcode}', source='{self.source}', destination='{self.destination}'"
+        return f"line={self.line} opcode={self.opcode}, source={self.source}, destination={self.destination}"
 
     def __repr__(self):
         return f"<{self.opcode}> {self.source}, {self.destination}"
