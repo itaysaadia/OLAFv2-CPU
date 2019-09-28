@@ -7,7 +7,7 @@ import oasm
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.debug("olaf assembler starting")
 
 
@@ -27,11 +27,17 @@ class OLAFAssembler:
             logger.error(f"Oasm file {oasm_file} not found")
         self.should_print = True
 
-        self._tokenized_oasm = {".text": list(), ".data": list(), ".rodata": list(), "functions": dict()}
-        self._vars = dict()
+        self._tokenized_oasm = {
+            ".text": list(),
+            ".data": list(), 
+            ".rodata": list(), 
+        }
+        self._variables = dict()
+        self._functions = dict()
         self.rom = "v2.0 raw\n0 "
+        self.ram = "v2.0 raw\n"
 
-    def assemble(self, output_rom="BOOT.rom", output_ram="ramfs.ram", should_print=False) -> str:
+    def assemble(self, output_rom="BOOT.rom", output_ram="initram.ram", should_print=False) -> str:
         """
         :param output_rom: (optional) output file for the buffer of disassembly
         :param should_print: (optional) if True, prints the assembly buffer in the end 
@@ -49,7 +55,37 @@ class OLAFAssembler:
             logger.error("the oasm file is incorrect")
             raise e
 
+        # parsing data
+        address_of_variable = 0
+        for line in self._tokenized_oasm[".rodata"]:
+            self.ram += line.parse()
+            line.address = address_of_variable
+            self._variables[line.name] = line
+            address_of_variable += len(line)
+        self.ram += "\n"
+        self._variables["DATA_START"] = oasm.OasmData("int", "DATA_START", address_of_variable + 1)
+        self._variables["DATA_START"].address = address_of_variable + 1
+
+        print("==== RAM ====")
+        if self.should_print:
+            print(self.ram)
+
+        try:
+            self.output_ram = open(output_ram, "w") if type(
+                output_ram) is str else output_ram
+        except:
+            logger.error(f"Output file {output_ram} could not be opened")
+        try:
+            self.output_ram.write(self.ram)
+        except:
+            logger.warn("could not write to a file")
+
+        # parse text
+        print("==== ROM ====")
+
         for line in self._tokenized_oasm[".text"]:
+            line.functions = self._functions
+            line.variables = self._variables
             self.rom += line.parse()
             
         if self.should_print:
@@ -65,6 +101,7 @@ class OLAFAssembler:
         except:
             logger.warn("could not write to a file")
         self.rom += "\n"
+
         return self.rom
 
     def _tokenize(self):
@@ -114,12 +151,12 @@ class OLAFAssembler:
                 elif segment == ".text":
                     opcode, source, destination = current_segment_handler.regex.search(line).groups()
                     if line.endswith(":"):
-                        self._tokenized_oasm["functions"][line[:-1]] = opcode_address
+                        self._functions[line[:-1]] = opcode_address
                     else:
-                        opcode_address += 1 
                         self._tokenized_oasm[".text"].append(
-                            oasm.OasmText(line_number, opcode, source, destination)
+                            oasm.OasmText(opcode_address, opcode, source, destination)
                         )
+                        opcode_address += 1 
                 elif segment ==".rodata":
                     var_type, var_name, var_value = current_segment_handler.regex.search(line).groups()
                     self._tokenized_oasm[".rodata"].append(
@@ -128,8 +165,6 @@ class OLAFAssembler:
                 else:
                     raise SyntaxError(f"Unknown segment {current_segment_handler}")
                 logger.debug(f"added {current_segment_handler.regex.search(line).groups()}")
-        for i in self._tokenized_oasm[".text"]:
-            i.functions = self._tokenized_oasm["functions"] 
 
 
 if __name__ == "__main__":
@@ -137,4 +172,4 @@ if __name__ == "__main__":
         logger.error(f"Usage {sys.argv[0]} OASM_FILE")
         exit(-1)
     assembler = OLAFAssembler(sys.argv[1])
-    assembler.assemble(output_rom="BOOT.rom", output_ram="BOOT.ram")
+    assembler.assemble(output_rom="OS/BOOT.rom", output_ram="OS/initram.ram")
