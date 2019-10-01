@@ -217,10 +217,10 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="4" loc="(360,430)" name="ROM">
       <a name="dataWidth" val="16"/>
       <a name="contents">addr/data: 8 16
-0 a19 2019 1a 351b 9a 411b 4019
-4f19 4c19 4119 4619 7619 3219 2319 2019
-309a 351b 303a 4e 724c 1712 511 6219
-7919 6219 1f 9c 648c 2415 6484 9c
+0 9a 411b a19 79a 411b 289a 351b
+289a 411b 4019 9a 411b 2319 2019 909a
+351b 909a 18ba 4a1b c 811 6219 7919
+6219 351b 1f 9c 648c 2415 6484 9c
 7d 3061 19 2611 a8c 2e15 9d 9c
 6485 a84 9c 7d 3061 19 9d a85
 9c 7d 3061 19 1e 9c 3d 78
@@ -228,21 +228,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
 1e 9c 3d 6e 6c 4912 19 121
 4311 1e 9c 3d e 181 bc 3d
 4e 1a1 20d 5913 c 5712 4a11 11a
-5b11 1a 5b11 1e 97a 465 3061 19
-a19 3119 3e19 3e19 3519 3d19 19a 586
-9c1b a19 3819 3c19 3c19 3319 3d19 87a
-367 3061 19 a19 3519 3719 5e19 3719
-3519 3d19 4b9a 3988 9c1b a19 3519 2619
-3319 3d19 57a 36a 3061 19 a19 3519
-7c19 3219 3d19 57a 26b 3061 19 a19
-981b a19 6219 7919 6519 f09a b61b 1f
-7919 6119 7919 1e 9c 648c a515 6484
-9c 7d 3061 19 a711 a8c af15 9d
-9c 6485 a84 9c 7d 3061 19 9d
-a85 9c 7d 3061 19 1e 9c 3d
-78 6c b812 19 a6c c112 6f 121
-b811 1e 9c 3d 6e 6c ca12 19
-121 c411 a19 1e
+5b11 1a 5b11 1e
 </a>
     </comp>
     <comp lib="0" loc="(150,330)" name="Clock">

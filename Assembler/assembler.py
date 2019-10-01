@@ -7,7 +7,7 @@ import oasm
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 logger.debug("olaf assembler starting")
 
 

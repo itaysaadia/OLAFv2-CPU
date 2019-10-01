@@ -5,7 +5,7 @@ import logging
 import olaf2
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 class Oasm(ABC):
@@ -94,7 +94,7 @@ class OasmText(Oasm):
                 (self.source.startswith('"') and self.source.endswith('"')):
                 instruction += ord(self.source[1]) << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
             elif self.source.startswith("#"):
-                instruction += self.variables[self.source[1:]] << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
+                instruction += self.variables[self.source[1:]].address << (olaf2._SIZEOF_OPCODE + olaf2._SIZEOF_SOURCE)
             elif self.source.startswith("$"):
                 instruction += olaf2.Registers[self.source[1:]].value << olaf2._SIZEOF_OPCODE
             else:
@@ -118,10 +118,10 @@ class OasmText(Oasm):
         return self.assembly
 
     def __str__(self):
-        return f"line={self.line} opcode={self.opcode}, source={self.source}, destination={self.destination}"
+        return f"opcode={self.opcode}, source={self.source}, destination={self.destination}"
 
     def __repr__(self):
-        return f"<OasmText: {self.opcode}> {self.source}, {self.destination}"
+        return f"<OasmText: {self.opcode} {self.source}, {self.destination}>"
 
 
 class OasmRoData(OasmData):
