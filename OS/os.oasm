@@ -12,7 +12,9 @@ string GET_USERNAME = "enter username: "
 string ls = "ls"
 string rm = "rm"
 string cat = "cat"
+string cls = "cls"
 string edit = "edit"
+string reset = "reset"
 
 .text
 
@@ -24,19 +26,16 @@ boot_msg:
 get_username:
     MOV $RDI, #GET_USERNAME
     CALL @print
-    MOV $RA, #DATA_START
+    NOP
+    MOV $RDI, #DATA_START
     CALL @blocking_read
 
 prompt:
-    MOV $RDI, 0
+    MOV $RDI, #DATA_START
     CALL @print
     OUT '@'
-    OUT 'O'
-    OUT 'L'
-    OUT 'A'
-    OUT 'F'
-    OUT 'v'
-    OUT '2'
+    MOV $RDI, #OS_NAME
+    CALL @print
     OUT '#'
     OUT 0x20
 
@@ -45,20 +44,39 @@ read_command:
     CALL @blocking_read
 
 parse_command:
+    NOP
     MOV $RDI, 0x90
-    MOV $RSI, #ls
+    NOP
+    MOV $RSI, #cls
     CALL @strcmp
-    TEST $RA, 0
-    JEQ @shutdown
-    JMP @prompt
+    TEST $RA, 1
+    JEQ @__parse_command__call_cls
+    NOP
+    MOV $RDI, 0x90
+    NOP
+    MOV $RSI, #reset
+    CALL @strcmp
+    TEST $RA, 1
+    JEQ @__parse_command__call_reset
+    __parse_command__jmp_prompt:
+        JMP @prompt
+    __parse_command__call_cls:
+        CALL @cls
+        JMP @prompt
+    __parse_command__call_reset:
+        CALL @reset
 
-shutdown:
+reset:
     OUT 'b'
     OUT 'y'
     OUT 'b'
     CALL @blocking_read
     RST
     
+cls:
+    OUT 0x0c
+    RET
+
 ; get tow arguments, 2 pointers to strings to compare
 ; gets one parameter, a number to print
 print_number:
@@ -120,7 +138,9 @@ blocking_read:
             ADD $RB, 1
             JMP @__blocking_read__get_char
     __blocking_read__return:
-       RET
+        MOV $RD, 0
+        STOR $RD
+        RET
     
 ; gets 1 argument, the initial position of the data
 print:
@@ -156,7 +176,7 @@ strcmp:
         ; if it is true it's means that $RC is also \00 because if we got here they both equal
         TEST $RA, 0
         JEQ @__strcmp__equals
-        JMP @__strcmp__load_first_value
+        JMP @strcmp
     __strcmp__equals:
         MOV $RA, 1
         JMP @__strcmp__exit
