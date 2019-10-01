@@ -1,153 +1,187 @@
+; This is the Operating System for OLAFv2, written by Itay Saadia (2019).
+
+.rodata
+; this section will create an image of the RAM that contains a block of 
+; data in the beginning of the memory.
+
+; strings 
+string OS_NAME = "OLAFv2"
+string GET_USERNAME = "enter username: "
+
+; commands
+string ls = "ls"
+string rm = "rm"
+string cat = "cat"
+string cls = "cls"
+string edit = "edit"
+string reset = "reset"
+
 .text
-start:
-    ; stack
-    MOV $RA, 'A'
-    PUSH $RA
-    POP $RD
-    OUT
-    OUT 10
-    
-conditions:
-    MOV $RA, 1
-    OUT '$'
-    OUT 'R'
-    OUT 'A'
-    TEST $RA, 2
-    JST @else
-    
-if_RA_bigger:
-    OUT '>'
-    JMP $RA, @finally
-    
-else:
-    OUT '<'
 
-finally:
-    OUT '2'
+boot_msg:
+    MOV $RDI, #OS_NAME
+    CALL @print
     OUT 10
 
-addition:
-    OUT '4'
-    OUT '+'
-    OUT '5'
-    OUT '='
-    MOV $RD, '4'
-    ADD $RD, 0x5
-    OUT
-    OUT 0, 10
+get_username:
+    MOV $RDI, #GET_USERNAME
+    CALL @print
+    NOP
+    MOV $RDI, #DATA_START
+    CALL @blocking_read
 
-subtraction:
-    OUT '5'
-    OUT '-'
-    OUT '4'
-    OUT '='
-    MOV $RD, '5'
-    SUB $RD, 0x4
-    OUT
-    OUT 0, 10
+prompt:
+    MOV $RDI, #DATA_START
+    CALL @print
+    OUT '@'
+    MOV $RDI, #OS_NAME
+    CALL @print
+    OUT '#'
+    OUT 0x20
 
-multiplication:
-    OUT '2'
-    OUT '*'
-    OUT '4'
-    OUT '='
-    MOV $RD, 0x4
-    MUL $RD, 0x2
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
+read_command:
+    MOV $RDI, 0x90
+    CALL @blocking_read
 
-division:
-    OUT 0, '8'
-    OUT 0, '/'
-    OUT 0, '4'
-    OUT 0, '='
-    MOV $RD, 0x8
-    DIV $RD, 0x4
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
+parse_command:
+    NOP
+    MOV $RDI, 0x90
+    NOP
+    MOV $RSI, #cls
+    CALL @strcmp
+    TEST $RA, 1
+    JEQ @__parse_command__call_cls
+    NOP
+    MOV $RDI, 0x90
+    NOP
+    MOV $RSI, #reset
+    CALL @strcmp
+    TEST $RA, 1
+    JEQ @__parse_command__call_reset
+    __parse_command__jmp_prompt:
+        JMP @prompt
+    __parse_command__call_cls:
+        CALL @cls
+        JMP @prompt
+    __parse_command__call_reset:
+        CALL @reset
 
-modulo:
-    OUT 0, '9'
-    OUT 0, '%'
-    OUT 0, '4'
-    OUT 0, '='
-    MOV $RD, 0x9
-    MOD $RD, 0x4
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
-
-shift_left:
-    OUT 0, '1'
-    OUT 0, '>'
-    OUT 0, '>'
-    OUT 0, '3'
-    OUT 0, '='
-    MOV $RD, 0x1
-    SHL $RD, 0x3
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
-
-shift_right:
-    OUT 0, '8'
-    OUT 0, '<'
-    OUT 0, '<'
-    OUT 0, '3'
-    OUT 0, '='
-    MOV $RD, 0x8
-    SHR $RD, 0x3
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
-
-XOR:
-    OUT 0, 0x35
-    OUT 0, 94
-    OUT 0, 0x37
-    OUT 0, 61
-    MOV $RD, 0x7
-    XOR $RD, 0x5
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
-
-AND:
-    OUT 0, '5'
-    OUT 0, '&'
-    OUT 0, '3'
-    OUT 0, '='
-    MOV $RD, 0x5
-    AND $RD, 0x3
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
-
-OR:
-    OUT 0, '5'
-    OUT 0, '|'
-    OUT 0, '2'
-    OUT 0, '='
-    MOV $RD, 0x5
-    OR $RD, 0x2
-    ADD $RD, 0x30
-    OUT
-    OUT 0, 10
-
-reboot:
-    CALL 0, @my_func
+reset:
     OUT 'b'
     OUT 'y'
-    OUT 'e'
+    OUT 'b'
+    CALL @blocking_read
     RST
-
-; test func after the ends and should test if the cpu
-; can jump to this place
-my_func:
-    NOP
-    OUT 0, 'y'
-    OUT 0, 'a'
-    OUT 0, 'y'
+    
+cls:
+    OUT 0x0c
     RET
+
+; get tow arguments, 2 pointers to strings to compare
+; gets one parameter, a number to print
+print_number:
+    PUSH $RDI
+    TEST $RDI, 100
+    JST @__print_number__ST_100
+    __print_number__BT_100:
+        ; get Xxx digit
+        DIV $RDI, 100
+        ; make printable
+        PUSH $RDI
+        POP $RD
+        ADD $RD, 0x30
+        ; print
+        OUT
+        JMP @__print_number__BT_10
+    __print_number__ST_100:
+        TEST $RDI, 10
+        JST @__print_number__ST_10
+        __print_number__BT_10:
+            POP $RDI
+            PUSH $RDI
+            ; get xXx digit
+            MOD $RDI, 100
+            DIV $RDI, 10
+            ; make printable
+            PUSH $RDI
+            POP $RD
+            ADD $RD, 0x30
+            ; print 
+            OUT
+    __print_number__ST_10:
+        ; get xxX digit
+        POP $RDI
+        MOD $RDI, 10
+        ; make printable
+        PUSH $RDI
+        POP $RD
+        ; print 
+        ADD $RD, 0x30
+        OUT
+    ; return 
+    RET
+
+
+; gets 1 argument, the initial location for the data
+blocking_read:
+    PUSH $RDI
+    POP $RB
+    __blocking_read__get_char:
+        GET $RD
+        TEST $RD, 0
+        JEQ @__blocking_read__get_char
+        OUT
+        TEST $RD, 10
+        JEQ @__blocking_read__return
+        __blocking_read__not_zero:
+            STOR $RD
+            ADD $RB, 1
+            JMP @__blocking_read__get_char
+    __blocking_read__return:
+        MOV $RD, 0
+        STOR $RD
+        RET
+    
+; gets 1 argument, the initial position of the data
+print:
+    PUSH $RDI
+    POP $RB
+    __print__get_char:
+        LOAD $RD
+        TEST $RD, 0
+        JEQ @__print__ret
+        __print__not_zero:
+            OUT
+            ADD $RB, 1
+        JMP @__print__get_char
+    __print__ret:
+    RET
+
+; get 2 arguments, 2 addresses of null - terminated strings to compare
+strcmp:
+    __strcmp__load_first_value:
+        PUSH $RDI
+        POP $RB
+        LOAD $RA
+        ADD $RDI, 1
+    __strcmp__load_second_value:
+        PUSH $RSI
+        POP $RB
+        LOAD $RC
+        ADD $RSI, 1
+    __strcmp__check_if_equals:
+        TSTR $RA, $RC
+        JNE @__strcmp__not_equals
+    __strcmp__check_if_end:
+        ; if it is true it's means that $RC is also \00 because if we got here they both equal
+        TEST $RA, 0
+        JEQ @__strcmp__equals
+        JMP @strcmp
+    __strcmp__equals:
+        MOV $RA, 1
+        JMP @__strcmp__exit
+    __strcmp__not_equals:
+        MOV $RA, 0
+        JMP @__strcmp__exit
+    __strcmp__exit:
+        RET

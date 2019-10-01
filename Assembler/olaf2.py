@@ -19,7 +19,12 @@ class Opcodes(Enum):
     OR   = 0x0b  # bitwise and
 
     # relations
-    TEST = 0x0c
+    TEST = 0x0c  # update the flags with substraction of a register and a constant
+    TSTR = 0x0d  # update the flags with substraction of two registers
+
+    # ram
+    LOAD = 0x0e
+    STOR = 0x0f
 
     # control flow
     JMP  = 0x11  # jump every time
@@ -48,12 +53,14 @@ class Opcodes(Enum):
 
 
 class Registers(Enum):
-    RA = 0
-    RB = 1
-    RC = 2
-    RD = 3
-    IP = 4
-    SP = 5
+    RA  = 0
+    RB  = 1
+    RC  = 2
+    RD  = 3
+    RDI = 4
+    RSI = 5
+    IP  = 6
+    SP  = 7
 
 _SIZEOF_OPCODE = 5
 _SIZEOF_SOURCE = 3
