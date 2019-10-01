@@ -14,6 +14,7 @@ string rm = "rm"
 string cat = "cat"
 string cls = "cls"
 string edit = "edit"
+string reset = "reset"
 
 .text
 
@@ -50,19 +51,32 @@ parse_command:
     CALL @strcmp
     TEST $RA, 1
     JEQ @__parse_command__call_cls
+    NOP
+    MOV $RDI, 0x90
+    NOP
+    MOV $RSI, #reset
+    CALL @strcmp
+    TEST $RA, 1
+    JEQ @__parse_command__call_reset
     __parse_command__jmp_prompt:
         JMP @prompt
     __parse_command__call_cls:
         CALL @cls
         JMP @prompt
+    __parse_command__call_reset:
+        CALL @reset
 
-shutdown:
+reset:
     OUT 'b'
     OUT 'y'
     OUT 'b'
     CALL @blocking_read
     RST
     
+cls:
+    OUT 0x0c
+    RET
+
 ; get tow arguments, 2 pointers to strings to compare
 ; gets one parameter, a number to print
 print_number:
@@ -164,16 +178,10 @@ strcmp:
         JEQ @__strcmp__equals
         JMP @strcmp
     __strcmp__equals:
-        OUT 'E'
         MOV $RA, 1
         JMP @__strcmp__exit
     __strcmp__not_equals:
-        OUT 'N'
         MOV $RA, 0
         JMP @__strcmp__exit
     __strcmp__exit:
         RET
-
-cls:
-    ;OUT 0x0c
-    RET
