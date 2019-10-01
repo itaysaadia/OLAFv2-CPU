@@ -44,7 +44,7 @@ read_command:
 
 parse_command:
     NOP
-    MOV $RDI, 0x90
+    MOV $RDI, #cls
     NOP
     MOV $RSI, #cls
     CALL @strcmp

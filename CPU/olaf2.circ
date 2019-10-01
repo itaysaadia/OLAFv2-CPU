@@ -217,7 +217,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="contents">addr/data: 8 16
 0 9a 491b a19 79a 491b 0 2c9a
 3b1b 2c9a 491b 4019 9a 491b 2319 2019
-909a 3b1b 0 909a 0 22ba 521b 10c
+909a 3b1b 0 229a 0 22ba 521b 10c
 1a12 911 661b 911 6219 7919 6219 3b1b
 1f 9c 648c 2a15 6484 9c 7d 3061
 19 2c11 a8c 3415 9d 9c 6485 a84
@@ -2252,8 +2252,8 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <wire from="(100,100)" to="(100,360)"/>
     <wire from="(160,100)" to="(470,100)"/>
     <wire from="(390,200)" to="(570,200)"/>
-    <wire from="(150,230)" to="(200,230)"/>
     <wire from="(440,160)" to="(440,170)"/>
+    <wire from="(150,230)" to="(200,230)"/>
     <wire from="(110,210)" to="(110,350)"/>
     <wire from="(520,160)" to="(520,170)"/>
     <wire from="(260,300)" to="(260,310)"/>
@@ -2371,10 +2371,10 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <wire from="(210,360)" to="(210,410)"/>
     <wire from="(390,180)" to="(400,180)"/>
     <wire from="(360,150)" to="(370,150)"/>
-    <wire from="(230,260)" to="(240,260)"/>
     <wire from="(210,320)" to="(220,320)"/>
     <wire from="(200,350)" to="(210,350)"/>
     <wire from="(210,360)" to="(220,360)"/>
+    <wire from="(230,260)" to="(240,260)"/>
     <wire from="(450,180)" to="(530,180)"/>
     <wire from="(440,170)" to="(520,170)"/>
     <wire from="(70,170)" to="(140,170)"/>
@@ -2399,6 +2399,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="1" loc="(260,140)" name="AND Gate">
       <a name="size" val="30"/>
       <a name="inputs" val="2"/>
+      <a name="label" val="JEQ"/>
     </comp>
     <comp lib="1" loc="(320,280)" name="OR Gate">
       <a name="size" val="30"/>
@@ -2413,16 +2414,17 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="pull" val="down"/>
       <a name="label" val="ZERO"/>
     </comp>
-    <comp lib="1" loc="(230,220)" name="AND Gate">
-      <a name="size" val="30"/>
-      <a name="inputs" val="2"/>
-    </comp>
     <comp lib="0" loc="(240,40)" name="Pin">
       <a name="facing" val="south"/>
       <a name="tristate" val="false"/>
       <a name="pull" val="down"/>
       <a name="label" val="TEST"/>
       <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="1" loc="(230,220)" name="AND Gate">
+      <a name="size" val="30"/>
+      <a name="inputs" val="2"/>
+      <a name="label" val="JBT"/>
     </comp>
     <comp lib="4" loc="(610,140)" name="Register">
       <a name="width" val="1"/>
@@ -2431,6 +2433,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="1" loc="(260,180)" name="AND Gate">
       <a name="size" val="30"/>
       <a name="inputs" val="2"/>
+      <a name="label" val="JNE"/>
     </comp>
     <comp lib="1" loc="(220,190)" name="NOT Gate">
       <a name="size" val="20"/>
@@ -2439,6 +2442,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="1" loc="(170,370)" name="AND Gate">
       <a name="size" val="30"/>
       <a name="inputs" val="2"/>
+      <a name="label" val="JLE"/>
     </comp>
     <comp lib="0" loc="(360,280)" name="Pin">
       <a name="facing" val="west"/>
@@ -2449,6 +2453,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="1" loc="(170,410)" name="AND Gate">
       <a name="size" val="30"/>
       <a name="inputs" val="2"/>
+      <a name="label" val="JLE"/>
     </comp>
     <comp lib="1" loc="(190,210)" name="NOT Gate">
       <a name="size" val="20"/>
@@ -2461,6 +2466,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="1" loc="(200,340)" name="AND Gate">
       <a name="size" val="30"/>
       <a name="inputs" val="2"/>
+      <a name="label" val="JBE"/>
     </comp>
     <comp lib="1" loc="(250,350)" name="OR Gate">
       <a name="size" val="30"/>
@@ -2492,10 +2498,6 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="pull" val="down"/>
       <a name="label" val="JEQ"/>
     </comp>
-    <comp lib="1" loc="(230,260)" name="AND Gate">
-      <a name="size" val="30"/>
-      <a name="inputs" val="2"/>
-    </comp>
     <comp lib="0" loc="(70,210)" name="Pin">
       <a name="tristate" val="false"/>
       <a name="pull" val="down"/>
@@ -2504,6 +2506,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="1" loc="(200,300)" name="AND Gate">
       <a name="size" val="30"/>
       <a name="inputs" val="2"/>
+      <a name="label" val="JBE"/>
     </comp>
     <comp lib="1" loc="(250,310)" name="OR Gate">
       <a name="size" val="30"/>
@@ -2537,6 +2540,11 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="4" loc="(460,140)" name="Register">
       <a name="width" val="1"/>
       <a name="trigger" val="falling"/>
+    </comp>
+    <comp lib="1" loc="(230,260)" name="AND Gate">
+      <a name="size" val="30"/>
+      <a name="inputs" val="2"/>
+      <a name="label" val="JST"/>
     </comp>
   </circuit>
   <circuit name="I/O">
