@@ -56,15 +56,9 @@ class OLAFAssembler:
             raise e
 
         # parsing data
-        address_of_variable = 0
-        for line in self._tokenized_oasm[".rodata"]:
+        for line in self._tokenized_oasm[".rodata"] + self._tokenized_oasm[".data"]:
             self.ram += line.parse()
-            line.address = address_of_variable
-            self._variables[line.name] = line
-            address_of_variable += len(line)
         self.ram += "\n"
-        self._variables["DATA_START"] = oasm.OasmData("int", "DATA_START", address_of_variable + 1)
-        self._variables["DATA_START"].address = address_of_variable + 1
 
         print("==== RAM ====")
         if self.should_print:
@@ -123,6 +117,7 @@ class OLAFAssembler:
         opcode_address = 1  # we are adding NOP at the beggining 
         current_segment_handler = oasm.Oasm
         segment = ""
+        address_of_variable = 0
         for line_number, line in enumerate(self.oasm_file.readlines()):
             line = line.rstrip().strip()
             if not line or line.startswith(";"):
@@ -158,13 +153,21 @@ class OLAFAssembler:
                         )
                         opcode_address += 1 
                 elif segment ==".rodata":
-                    var_type, var_name, var_value = current_segment_handler.regex.search(line).groups()
-                    self._tokenized_oasm[".rodata"].append(
-                        oasm.OasmRoData(var_type, var_name, var_value)
-                    )
+                    var_type, var_name, length, var_value = current_segment_handler.regex.search(line).groups()
+                    new_var = oasm.OasmRoData(var_type, var_name, length, var_value, address_of_variable)
+                    address_of_variable += len(new_var)
+                    self._tokenized_oasm[".rodata"].append(new_var)
+                    self._variables[new_var.name] = new_var
+                elif segment ==".data":
+                    var_type, var_name, length = current_segment_handler.regex.search(line).groups()
+                    new_var = oasm.OasmData(var_type, var_name, length, address_of_variable)
+                    address_of_variable += len(new_var)
+                    self._tokenized_oasm[".data"].append(new_var)
+                    self._variables[new_var.name] = new_var
                 else:
                     raise SyntaxError(f"Unknown segment {current_segment_handler}")
                 logger.debug(f"added {current_segment_handler.regex.search(line).groups()}")
+        self._variables["DATA_START"] = oasm.OasmData("int", "DATA_START", 1, address_of_variable)
 
 
 if __name__ == "__main__":

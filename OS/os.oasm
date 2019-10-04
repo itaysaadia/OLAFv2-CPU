@@ -5,16 +5,25 @@
 ; data in the beginning of the memory.
 
 ; strings 
-string OS_NAME = "OLAFv2"
-string GET_USERNAME = "enter username: "
+char OS_NAME[] = "OLAFv2"
+char GET_USERNAME[] = "enter username: "
+char NO_COMMAND[] = "command not found"
 
 ; commands
-string ls = "ls"
-string rm = "rm"
-string cat = "cat"
-string cls = "cls"
-string edit = "edit"
-string reset = "reset"
+char ls[] = "ls"
+char rm[] = "rm"
+char cat[] = "cat"
+char cls[] = "cls"
+char edit[] = "edit"
+char reset[] = "reset"
+
+
+.data
+
+char username[16]
+char command[16]
+
+
 
 .text
 
@@ -27,11 +36,11 @@ get_username:
     MOV $RDI, #GET_USERNAME
     CALL @print
     NOP
-    MOV $RDI, #DATA_START
+    MOV $RDI, #username
     CALL @blocking_read
 
 prompt:
-    MOV $RDI, #DATA_START
+    MOV $RDI, #username
     CALL @print
     OUT '@'
     MOV $RDI, #OS_NAME
@@ -40,25 +49,32 @@ prompt:
     OUT 0x20
 
 read_command:
-    MOV $RDI, 0x90
+    MOV $RDI, #command
     CALL @blocking_read
 
 parse_command:
     NOP
-    MOV $RDI, 0x90
+    MOV $RDI, #command
     NOP
     MOV $RSI, #cls
     CALL @strcmp
     TEST $RA, 1
     JEQ @__parse_command__call_cls
     NOP
-    MOV $RDI, 0x90
+    MOV $RDI, #command
     NOP
     MOV $RSI, #reset
     CALL @strcmp
     TEST $RA, 1
     JEQ @__parse_command__call_reset
     __parse_command__jmp_prompt:
+        MOV $RDI, #command
+        CALL @print
+        OUT ':'
+        OUT 0x20
+        MOV $RDI, #NO_COMMAND
+        CALL @print
+        OUT 10
         JMP @prompt
     __parse_command__call_cls:
         CALL @cls
