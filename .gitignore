@@ -5,3 +5,7 @@
 */__pycache__/
 
 OS/exploit.ram
+
+OS/initram.ram
+
+OS/BOOT.rom
