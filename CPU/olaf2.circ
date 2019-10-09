@@ -223,28 +223,30 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="addrWidth" val="16"/>
       <a name="dataWidth" val="24"/>
       <a name="contents">addr/data: 16 24
-0 25b3a 45d1a f 25c3a 135d1a f 9a
-721b a19 79a 721b 0 5a9a 641b 5a9a
-721b 4019 9a 721b 2319 2019 da9a 641b
-0 da9a 0 4bba 7b1b 10c 3512 0
-da9a 0 54ba 7b1b 10c 3912 0 da9a
-0 3bba 7b1b 10c 3712 da9a 721b 3a19
-2019 189a 721b a19 f11 3f1b f11 411b
-f11 3a1b 6219 7919 6219 641b 1f c19
-1e 2a9a 721b 0 15a9a 641b 0 15a9a
-9d1b 1e 9c 648c 5315 6484 9c 7d
-3061 19 5511 a8c 5d15 9d 9c 6485
-a84 9c 7d 3061 19 9d a85 9c
-7d 3061 19 1e 9c 3d 78 6c
-6612 19 a6c 6f12 6f 121 6611 7a
-6f 1e 9c 3d 6e 6c 7a12 19
-121 7411 1e 9c 3d e 181 bc
-3d 4e 1a1 20d 8a13 c 8812 7b11
-11a 8c11 1a 8c11 1e 9c bc 9c
-3d e bc 3d f c 9a12 181
-1a1 8f11 bd 9d 1e 25b3a ae 8d1b
-25a3a 2e 223 25d21 af 25a3a e 101
-f 1e
+0 a61b 9a 6d1b a19 79a 6d1b 0
+5a9a 5f1b 5a9a 6d1b 4019 9a 6d1b 2319
+2019 da9a 5f1b 0 da9a 0 4bba 761b
+10c 3012 0 da9a 0 54ba 761b 10c
+3412 0 da9a 0 3bba 761b 10c 3212
+da9a 6d1b 3a19 2019 189a 6d1b a19 a11
+3a1b a11 3c1b a11 351b 6219 7919 6219
+5f1b 1f c19 1e 2a9a 6d1b 0 15a9a
+5f1b 0 15a9a ad1b 1e 9c 648c 4e15
+6484 9c 7d 3061 19 5011 a8c 5815
+9d 9c 6485 a84 9c 7d 3061 19
+9d a85 9c 7d 3061 19 1e 9c
+3d 78 6c 6112 19 a6c 6a12 70
+121 6111 7a 70 1e 9c 3d 6f
+6c 7512 19 121 6f11 1e 9c 3d
+f 181 bc 3d 4f 1a1 e 20c
+d 8713 c 8512 7611 11a 8911 1a
+8911 1e 9c bc 9c 3d f bc
+3d 10 c 9712 181 1a1 8c11 bd
+9d 1e 9c 11a 9c 3d 4f 4c
+a412 101 181 9c11 9d 1e 25b3a 45d1a
+10 25c3a 135d1a 10 1e 25b3a af 8a1b
+25a3a 2f 223 25d21 b0 25b9a 8f 9a1b
+1c bb1b 1e 25a3a f 101 10 1e
 </a>
     </comp>
     <comp lib="0" loc="(190,310)" name="Pull Resistor"/>
