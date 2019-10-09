@@ -314,17 +314,18 @@ kernel:
             ADD $RB, #file_maps
             STOR $RSI 
         __kernel__create_file__increase_last_filename:
-            MOV $RDI, #last_file_name
+            MOV $RB, #last_file_name
             LOAD $RDI
             CALL @strlen
-            PUSH $RA
             
         CALL @__kernel__increase_last_fd
         RET
 
         __kernel__increase_last_fd:
+            PUSH $RA
             MOV $RB, #last_file_descriptor
             LOAD $RA
             ADD $RA, 1
             STOR $RA
+            POP $RA
             RET
