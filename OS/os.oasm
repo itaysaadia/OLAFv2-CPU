@@ -40,7 +40,7 @@ char files_data[40960]
 ; boot should be a part of the kernel!
 ; TODO add jmp here to the kernel
 boot:
-    CALL __kernel__boot
+    CALL @__kernel__boot
     __boot__boot_msg:
         MOV $RDI, #OS_NAME
         CALL @print
@@ -222,7 +222,9 @@ strcmp:
         LOAD $RC
         ADD $RSI, 1
     __strcmp__check_if_equals:
-        TSTR $RA, $RC
+        CHMR
+        TEST $RA, $RC
+        CHMC
         JNE @__strcmp__not_equals
     __strcmp__check_if_end:
         ; if it is true it's means that $RC is also \00 because if we got
@@ -261,11 +263,28 @@ strcpy:
         POP $RDI
         RET
 
+strlen:
+    PUSH $RDI
+    MOV $RA, 1
+    __strlen__count:
+        PUSH $RDI
+        POP $RB
+        LOAD $RC
+        TEST $RC, 0
+        JEQ @__strlen__exit
+        ADD $RA, 1
+        ADD $RDI, 1
+        JMP @__strlen__count
+    __strlen__exit:
+        POP $RDI
+        RET
+
 ; kernel code. this code is related to the abstraction of the Operating System
 ; and it is not a command (there are commands that use this code, but the user
 ; shouldn't use these function as command)
 kernel:
     ; welcome to the underworld.
+
     __kernel__boot:
         __kernel__boot__load_filename_address:
             MOV $RB, #last_file_name
@@ -276,23 +295,36 @@ kernel:
             MOV $RA, #files_data
             STOR $RA
         RET
+
     __kernel__create_file:
-        ; RDI is the name of the file 
-        MOV $RB, #last_file_name
-        LOAD $RSI
-        ; RSI now contains the new address of the filename
-        ; we save it for later (because the strcpy might change it)
-        CALL @strcpy
-        ; write to the file his name
-        MOV $RB, #last_file_descriptor
-        LOAD $RB
-        ; multiply by 2 because it is the size of the file
-        MUL $RB, 2
-        ; add to the address of file_maps because we want to reach the address
-        ADD $RB, #file_maps
-        STOR $RSI 
-        MOV $RB, #last_file_descriptor
-        LOAD $RA
-        ADD $RA, 1
-        STOR $RA
+        __kernel__create_file__copy_filename:
+            ; RDI is the name of the file 
+            MOV $RB, #last_file_name
+            LOAD $RSI
+            ; RSI now contains the new address of the filename
+            ; we save it for later (because the strcpy might change it)
+            CALL @strcpy
+        __kernel__create_file__update_file_with_his_name:
+            ; write to the file his name
+            MOV $RB, #last_file_descriptor
+            LOAD $RB
+            ; multiply by 2 because it is the size of the file
+            MUL $RB, 2
+            ; add to the address of file_maps because we want to reach the address
+            ADD $RB, #file_maps
+            STOR $RSI 
+        __kernel__create_file__increase_last_filename:
+            MOV $RDI, #last_file_name
+            LOAD $RDI
+            CALL @strlen
+            PUSH $RA
+            
+        CALL @__kernel__increase_last_fd
         RET
+
+        __kernel__increase_last_fd:
+            MOV $RB, #last_file_descriptor
+            LOAD $RA
+            ADD $RA, 1
+            STOR $RA
+            RET
