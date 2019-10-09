@@ -16,7 +16,7 @@ class OLAFAssembler:
     This class exports an API to assemble olaf programs to logisim readable memory buffer
     """
 
-    def __init__(self, oasm_file):
+    def __init__(self, oasm_file, should_print=False):
         """
         :param oasm_file: the filename (or opened file object) to the assembler file
         """
@@ -25,7 +25,7 @@ class OLAFAssembler:
                 oasm_file) is str else oasm_file
         except FileNotFoundError:
             logger.error(f"Oasm file {oasm_file} not found")
-        self.should_print = True
+        self.should_print = should_print
 
         self._tokenized_oasm = {
             ".text": list(),
@@ -55,13 +55,13 @@ class OLAFAssembler:
             logger.error("the oasm file is incorrect")
             raise e
 
-        # parsing data
+        logger.info("parsing data")
         for line in self._tokenized_oasm[".rodata"] + self._tokenized_oasm[".data"]:
             self.ram += line.parse()
         self.ram += "\n"
 
-        print("==== RAM ====")
         if self.should_print:
+            print("==== RAM ====")
             print(self.ram)
 
         try:
@@ -74,8 +74,7 @@ class OLAFAssembler:
         except:
             logger.warn("could not write to a file")
 
-        # parse text
-        print("==== ROM ====")
+        logger.info("parse text")
 
         for line in self._tokenized_oasm[".text"]:
             line.functions = self._functions
@@ -83,6 +82,7 @@ class OLAFAssembler:
             self.rom += line.parse()
             
         if self.should_print:
+            print("==== ROM ====")
             print(self.rom)
 
         try:
@@ -95,8 +95,9 @@ class OLAFAssembler:
         except:
             logger.warn("could not write to a file")
         self.rom += "\n"
-
-        return self.rom
+        
+        logger.info("done")
+        return self.rom, self.ram
 
     def _tokenize(self):
         """
@@ -174,5 +175,5 @@ if __name__ == "__main__":
     if 2 != len(sys.argv):
         logger.error(f"Usage {sys.argv[0]} OASM_FILE")
         exit(-1)
-    assembler = OLAFAssembler(sys.argv[1])
+    assembler = OLAFAssembler(sys.argv[1], should_print=False)
     assembler.assemble(output_rom="OS/BOOT.rom", output_ram="OS/initram.ram")
