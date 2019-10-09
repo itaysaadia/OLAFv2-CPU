@@ -305,6 +305,7 @@ kernel:
             CALL @strcpy
         __kernel__create_file__update_file_with_his_name:
             ; write to the file his name
+            NOP
             MOV $RB, #last_file_descriptor
             LOAD $RB
             ; multiply by 2 because it is the size of the file
