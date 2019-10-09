@@ -302,7 +302,6 @@ kernel:
             MOV $RB, #last_file_name
             LOAD $RSI
             ; RSI now contains the new address of the filename
-            ; we save it for later (because the strcpy might change it)
             CALL @strcpy
         __kernel__create_file__update_file_with_his_name:
             ; write to the file his name
@@ -317,6 +316,16 @@ kernel:
             MOV $RB, #last_file_name
             LOAD $RDI
             CALL @strlen
+            ; the length is in register $RA
+            NOP
+            CHMR
+            NOP
+            ADD $RA, $RDI
+            NOP
+            CHMC
+            NOP
+            MOV $RB, #last_file_name
+            STOR $RA
             
         CALL @__kernel__increase_last_fd
         RET
