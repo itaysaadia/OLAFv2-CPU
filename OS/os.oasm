@@ -304,14 +304,13 @@ kernel:
             ; RSI now contains the new address of the filename
             CALL @strcpy
         __kernel__create_file__update_file_with_his_name:
-            ; write to the file his name
             NOP
             MOV $RB, #last_file_descriptor
-            LOAD $RB
-            ; multiply by 2 because it is the size of the file
-            MUL $RB, 2
-            ; add to the address of file_maps because we want to reach the address
-            ADD $RB, #file_maps
+            LOAD $RDI
+            CALL @__kernel__get_address_from_fd
+            PUSH $RA
+            POP $RB
+            ; write to the file his name
             STOR $RSI 
         __kernel__create_file__increase_last_filename:
             MOV $RB, #last_file_name
@@ -331,6 +330,12 @@ kernel:
         CALL @__kernel__increase_last_fd
         RET
 
+        __kernel__get_filename_from_fd:
+            PUSH $RDI
+
+            POP $RDI
+            RET
+
         __kernel__increase_last_fd:
             PUSH $RA
             MOV $RB, #last_file_descriptor
@@ -338,4 +343,13 @@ kernel:
             ADD $RA, 1
             STOR $RA
             POP $RA
+            RET
+
+        __kernel__get_address_from_fd:
+            PUSH $RDI
+            POP $RA
+            ; multiply by 2 because it is the size of the file
+            MUL $RA, 2
+            ; add to the address of file_maps because we want to reach the address
+            ADD $RA, #file_maps
             RET
