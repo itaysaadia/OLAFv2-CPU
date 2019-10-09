@@ -8,10 +8,12 @@
 char OS_NAME[] = "OLAFv2"
 char GET_USERNAME[] = "enter username: "
 char NO_COMMAND[] = "command not found"
+char GET_FILENAME = "enter filename: "
 
 ; commands
-char ls[] = "ls"
+char touch[] = "touch"
 char rm[] = "rm"
+char ls[] = "ls"
 char cat[] = "cat"
 char cls[] = "cls"
 char edit[] = "edit"
@@ -20,17 +22,29 @@ char reset[] = "reset"
 
 .data
 
-char username[16]
-char command[16]
+char username[128]
+char command[128]
+char filename_input[256]
 
+; files
+int last_file_descriptor[1]
+int last_file_name[1]
+int last_file_data[1]
+char file_maps[512]
+char files_names[3840]
+char files_data[40960]
 
 
 .text
 
-boot_msg:
-    MOV $RDI, #OS_NAME
-    CALL @print
-    OUT 10
+; boot should be a part of the kernel!
+; TODO add jmp here to the kernel
+boot:
+    CALL __kernel__boot
+    __boot__boot_msg:
+        MOV $RDI, #OS_NAME
+        CALL @print
+        OUT 10
 
 get_username:
     MOV $RDI, #GET_USERNAME
@@ -67,7 +81,14 @@ parse_command:
     CALL @strcmp
     TEST $RA, 1
     JEQ @__parse_command__call_reset
-    __parse_command__jmp_prompt:
+    NOP
+    MOV $RDI, #command
+    NOP
+    MOV $RSI, #touch
+    CALL @strcmp
+    TEST $RA, 1
+    JEQ @__parse_command__call_touch
+    __parse_command__command_not_found:
         MOV $RDI, #command
         CALL @print
         OUT ':'
@@ -78,6 +99,9 @@ parse_command:
         JMP @prompt
     __parse_command__call_cls:
         CALL @cls
+        JMP @prompt
+    __parse_command__call_touch:
+        CALL @touch
         JMP @prompt
     __parse_command__call_reset:
         CALL @reset
@@ -92,6 +116,18 @@ reset:
 cls:
     OUT 0x0c
     RET
+
+touch: 
+    MOV $RDI, #GET_FILENAME
+    CALL @print
+    NOP
+    MOV $RDI, #filename_input
+    CALL @blocking_read
+    NOP
+    MOV $RDI, #filename_input
+    CALL @__kernel__create_file
+    RET
+
 
 ; get tow arguments, 2 pointers to strings to compare
 ; gets one parameter, a number to print
@@ -189,10 +225,11 @@ strcmp:
         TSTR $RA, $RC
         JNE @__strcmp__not_equals
     __strcmp__check_if_end:
-        ; if it is true it's means that $RC is also \00 because if we got here they both equal
+        ; if it is true it's means that $RC is also \00 because if we got
+        ; here they both equal
         TEST $RA, 0
         JEQ @__strcmp__equals
-        JMP @strcmp
+        JMP @__strcmp__load_first_value
     __strcmp__equals:
         MOV $RA, 1
         JMP @__strcmp__exit
@@ -200,4 +237,62 @@ strcmp:
         MOV $RA, 0
         JMP @__strcmp__exit
     __strcmp__exit:
+        RET
+
+strcpy:
+    PUSH $RDI
+    PUSH $RSI
+    __strcpy__copy:
+        ; load the data in RDI to RSI
+        PUSH $RDI
+        POP $RB
+        LOAD $RA
+        PUSH $RSI
+        POP $RB
+        STOR $RA
+        ; we are testing this after the write because we want to add the null
+        TEST $RA, 0
+        JEQ @__strcpy__exit
+        ADD $RDI, 1
+        ADD $RSI, 1
+        JMP @__strcpy__copy
+    __strcpy__exit:
+        POP $RSI
+        POP $RDI
+        RET
+
+; kernel code. this code is related to the abstraction of the Operating System
+; and it is not a command (there are commands that use this code, but the user
+; shouldn't use these function as command)
+kernel:
+    ; welcome to the underworld.
+    __kernel__boot:
+        __kernel__boot__load_filename_address:
+            MOV $RB, #last_file_name
+            MOV $RA, #files_names
+            STOR $RA
+        __kernel__boot__load__file_data_address:
+            MOV $RB, #last_file_data
+            MOV $RA, #files_data
+            STOR $RA
+        RET
+    __kernel__create_file:
+        ; RDI is the name of the file 
+        MOV $RB, #last_file_name
+        LOAD $RSI
+        ; RSI now contains the new address of the filename
+        ; we save it for later (because the strcpy might change it)
+        CALL @strcpy
+        ; write to the file his name
+        MOV $RB, #last_file_descriptor
+        LOAD $RB
+        ; multiply by 2 because it is the size of the file
+        MUL $RB, 2
+        ; add to the address of file_maps because we want to reach the address
+        ADD $RB, #file_maps
+        STOR $RSI 
+        MOV $RB, #last_file_descriptor
+        LOAD $RA
+        ADD $RA, 1
+        STOR $RA
         RET
