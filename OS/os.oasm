@@ -8,7 +8,7 @@
 char OS_NAME[] = "OLAFv2"
 char GET_USERNAME[] = "enter username: "
 char NO_COMMAND[] = "command not found"
-char GET_FILENAME = "enter filename: "
+char GET_FILENAME[] = "enter filename: "
 
 ; commands
 char touch[] = "touch"
@@ -77,6 +77,13 @@ parse_command:
     NOP
     MOV $RDI, #command
     NOP
+    MOV $RSI, #ls
+    CALL @strcmp
+    TEST $RA, 1
+    JEQ @__parse_command__call_ls
+    NOP
+    MOV $RDI, #command
+    NOP
     MOV $RSI, #reset
     CALL @strcmp
     TEST $RA, 1
@@ -105,7 +112,29 @@ parse_command:
         JMP @prompt
     __parse_command__call_reset:
         CALL @reset
+    __parse_command__call_ls:
+        CALL @ls
+        JMP @prompt
 
+ls:
+    ; set $RA to the max fd
+    MOV $RC, 0
+    __ls__print_next_file:
+        CALL @__kernel__get_last_fd
+        CHMR
+        TEST $RA, $RC
+        CHMC
+        JEQ @__ls__exit
+        PUSH $RC
+        POP $RDI
+        CALL @__kernel__get_filename_from_fd
+        PUSH $RA
+        POP $RDI
+        CALL @print
+        ADD $RC, 1
+        JMP @__ls__print_next_file
+    __ls__exit:
+        RET
 reset:
     OUT 'b'
     OUT 'y'
@@ -326,30 +355,38 @@ kernel:
             NOP
             MOV $RB, #last_file_name
             STOR $RA
-            
         CALL @__kernel__increase_last_fd
         RET
 
         __kernel__get_filename_from_fd:
-            PUSH $RDI
+            CALL @__kernel__get_address_from_fd
+            RET
 
-            POP $RDI
+        __kernel__get_data_from_fd:
+            CALL @__kernel__get_address_from_fd
+            ADD $RA, 1
+            RET
+
+        __kernel__get_last_fd:
+            MOV $RB, #last_file_descriptor
+            LOAD $RA
             RET
 
         __kernel__increase_last_fd:
             PUSH $RA
-            MOV $RB, #last_file_descriptor
-            LOAD $RA
+            PUSH $RA
+            POP $RDI
+            CALL @__kernel__get_last_fd
             ADD $RA, 1
             STOR $RA
             POP $RA
             RET
 
         __kernel__get_address_from_fd:
+            ; multiply by 2 because it is the size of the file
+            MUL $RDI, 2
+            ; add to the address of file_maps because we want to reach the address
+            ADD $RDI, #file_maps
             PUSH $RDI
             POP $RA
-            ; multiply by 2 because it is the size of the file
-            MUL $RA, 2
-            ; add to the address of file_maps because we want to reach the address
-            ADD $RA, #file_maps
             RET
