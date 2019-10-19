@@ -285,7 +285,9 @@ de1b 101 1e 25a3a f 1e 1c 1c
       <a name="bit14" val="none"/>
       <a name="bit15" val="none"/>
     </comp>
-    <comp lib="5" loc="(450,360)" name="Keyboard"/>
+    <comp lib="5" loc="(450,360)" name="Keyboard">
+      <a name="buflen" val="256"/>
+    </comp>
     <comp lib="4" loc="(360,550)" name="RAM">
       <a name="addrWidth" val="16"/>
       <a name="dataWidth" val="16"/>
