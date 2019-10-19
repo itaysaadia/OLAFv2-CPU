@@ -119,7 +119,7 @@ parse_command:
 ls:
     ; set $RA to the max fd
     MOV $RC, 0
-    __ls__print_next_file:
+    __ls__print_next_file_name:
         CALL @__kernel__get_last_fd
         CHMR
         TEST $RA, $RC
@@ -132,7 +132,7 @@ ls:
         POP $RDI
         CALL @print
         ADD $RC, 1
-        JMP @__ls__print_next_file
+        JMP @__ls__print_next_file_name
     __ls__exit:
         RET
 reset:
@@ -326,6 +326,36 @@ kernel:
         RET
 
     __kernel__create_file:
+        OUT 'K'
+        OUT 'C'
+        OUT 'F'
+        OUT 10
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
         __kernel__create_file__copy_filename:
             ; RDI is the name of the file 
             MOV $RB, #last_file_name
@@ -377,6 +407,7 @@ kernel:
             PUSH $RA
             POP $RDI
             CALL @__kernel__get_last_fd
+            NOP
             ADD $RA, 1
             STOR $RA
             POP $RA
