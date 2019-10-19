@@ -1,6 +1,7 @@
 import logging
 import re
 import sys
+import click
 
 import olaf2
 import oasm
@@ -34,7 +35,7 @@ class OLAFAssembler:
         }
         self._variables = dict()
         self._functions = dict()
-        self.rom = "v2.0 raw\n0 "
+        self.rom = "v2.0 raw\n"
         self.ram = "v2.0 raw\n"
 
     def assemble(self, output_rom="BOOT.rom", output_ram="initram.ram", should_print=False) -> str:
@@ -115,7 +116,7 @@ class OLAFAssembler:
         }
         """
         logger.info("tokenizing")
-        opcode_address = 1  # we are adding NOP at the beggining 
+        opcode_address = 0  # we are adding NOP at the beggining 
         current_segment_handler = oasm.Oasm
         segment = ""
         address_of_variable = 0
@@ -171,9 +172,26 @@ class OLAFAssembler:
         self._variables["DATA_START"] = oasm.OasmData("int", "DATA_START", 1, address_of_variable)
 
 
+@click.command()
+@click.option('--output-rom',
+    default="OS/BOOT.rom", 
+    type=click.File("w"),
+    help='The ROM file which will output')
+@click.option('--output-ram', 
+    default="OS/BOOT.ram",
+    type=click.File("w"),
+    help='The RAM file which will output')
+@click.option('--input-file',
+    default="OS/os.oasm",
+    type=click.File("r"),
+    help='The input file to assemble')
+@click.option("--should-print",
+    is_flag=True
+)
+def cli(input_file, output_rom, output_ram, should_print):
+    assembler = OLAFAssembler(input_file, should_print=should_print)
+    assembler.assemble(output_rom=output_rom, output_ram=output_ram)
+
+
 if __name__ == "__main__":
-    if 2 != len(sys.argv):
-        logger.error(f"Usage {sys.argv[0]} OASM_FILE")
-        exit(-1)
-    assembler = OLAFAssembler(sys.argv[1], should_print=False)
-    assembler.assemble(output_rom="OS/BOOT.rom", output_ram="OS/initram.ram")
+    cli()
