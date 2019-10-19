@@ -5,7 +5,7 @@ import logging
 import olaf2
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 class Oasm(ABC):
