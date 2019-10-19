@@ -5,7 +5,7 @@ import logging
 import olaf2
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 class Oasm(ABC):
@@ -33,18 +33,18 @@ class OasmData(Oasm):
                 raise SyntaxError(f"bad legnth type {type(length)}")
         elif self.var_type == "int":
             self.length = 1
-        self.assembly = "0 " * self.length
+        # self.assembly = "0 " * self.length
         self.address = address
 
     def parse(self):
-        logger.debug(f"parsing data.")
+        logger.debug(f"parsing data. {self}")
         return self.assembly
         
     def __len__(self) -> int:
         return self.length
 
     def __str__(self):
-        return f"{self.var_type} {self.name}[{self.length}] = {self.assembly}"
+        return f"{self.var_type} {self.name}[{self.length}] at {hex(self.address)}"
     
     def __repr__(self):
         return f"<OasmData {str(self)}>"
@@ -161,7 +161,7 @@ class OasmText(Oasm):
         return self.assembly
 
     def __str__(self):
-        return f"opcode={self.opcode}, source={self.source}, destination={self.destination}"
+        return f"opcode={self.opcode}, source={self.source}, destination={self.destination} @{hex(self.line)}"
 
     def __repr__(self):
         return f"<OasmText: {self.opcode} {self.source}, {self.destination}>"
