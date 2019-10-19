@@ -4,7 +4,8 @@
 .vscode
 */__pycache__/
 
-OS/exploit.ram
+OS/*.ram
+OS/*.rom
 
 OS/initram.ram
 
