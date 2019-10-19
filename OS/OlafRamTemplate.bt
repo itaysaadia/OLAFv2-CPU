@@ -1,0 +1,58 @@
+//------------------------------------------------
+//--- 010 Editor v9.0.2 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID int16s: 
+//   History: 
+//------------------------------------------------
+
+typedef struct {
+    int16 p_filename;
+    int16 p_filedata;
+} FILE_MAP;
+
+
+struct _oasm {
+    struct _constants {
+        struct _const_strings {
+            int16 OS_NAME[7];
+            int16 GET_USERNAME[17];
+            int16 NO_COMMAND[18];
+            int16 GET_FILENAME[17];
+        } const_strings;
+        
+        struct _commands {
+            int16 touch[6];
+            int16 rm[3];
+            int16 ls[3];
+            int16 cat[4];
+            int16 cls[4];
+            int16 edit[5];
+            int16 reset[6];
+        } commands;
+    } constants;
+
+
+    struct _variables {
+        int16 username[128];
+        int16 command[128];
+        int16 filename_input[256];
+    } variables;
+
+    struct _files_kernel {             
+        int16 last_file_descriptor[1];
+        int16 last_file_name[1];
+        int16 last_file_data[1];
+        FILE_MAP file_maps[256];
+    } files_kernel;
+    struct _files_data {
+        int16 files_names[3840];
+        int16 files_data[4096];
+    } files_data;
+} oasm;
+
