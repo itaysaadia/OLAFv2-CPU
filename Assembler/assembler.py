@@ -35,7 +35,7 @@ class OLAFAssembler:
         }
         self._variables = dict()
         self._functions = dict()
-        self.rom = "v2.0 raw\n0 "
+        self.rom = "v2.0 raw\n"
         self.ram = "v2.0 raw\n"
 
     def assemble(self, output_rom="BOOT.rom", output_ram="initram.ram", should_print=False) -> str:
@@ -116,7 +116,7 @@ class OLAFAssembler:
         }
         """
         logger.info("tokenizing")
-        opcode_address = 1  # we are adding NOP at the beggining 
+        opcode_address = 0  # we are adding NOP at the beggining 
         current_segment_handler = oasm.Oasm
         segment = ""
         address_of_variable = 0
@@ -178,7 +178,7 @@ class OLAFAssembler:
     type=click.File("w"),
     help='The ROM file which will output')
 @click.option('--output-ram', 
-    default="OS/BOOT.rom",
+    default="OS/BOOT.ram",
     type=click.File("w"),
     help='The RAM file which will output')
 @click.option('--input-file',

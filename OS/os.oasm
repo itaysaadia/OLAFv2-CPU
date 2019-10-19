@@ -45,14 +45,11 @@ boot:
         MOV $RDI, #OS_NAME
         CALL @print
         OUT 10
-
 get_username:
     MOV $RDI, #GET_USERNAME
     CALL @print
-    NOP
     MOV $RDI, #username
     CALL @blocking_read
-
 prompt:
     MOV $RDI, #username
     CALL @print
@@ -61,36 +58,26 @@ prompt:
     CALL @print
     OUT '#'
     OUT 0x20
-
 read_command:
     MOV $RDI, #command
     CALL @blocking_read
-
 parse_command:
-    NOP
     MOV $RDI, #command
-    NOP
     MOV $RSI, #cls
     CALL @strcmp
     TEST $RA, 1
     JEQ @__parse_command__call_cls
-    NOP
     MOV $RDI, #command
-    NOP
     MOV $RSI, #ls
     CALL @strcmp
     TEST $RA, 1
     JEQ @__parse_command__call_ls
-    NOP
     MOV $RDI, #command
-    NOP
     MOV $RSI, #reset
     CALL @strcmp
     TEST $RA, 1
     JEQ @__parse_command__call_reset
-    NOP
     MOV $RDI, #command
-    NOP
     MOV $RSI, #touch
     CALL @strcmp
     TEST $RA, 1
@@ -115,7 +102,6 @@ parse_command:
     __parse_command__call_ls:
         CALL @ls
         JMP @prompt
-
 ls:
     ; set $RA to the max fd
     MOV $RC, 0
@@ -141,23 +127,17 @@ reset:
     OUT 'b'
     CALL @blocking_read
     RST
-    
 cls:
     OUT 0x0c
     RET
-
 touch: 
     MOV $RDI, #GET_FILENAME
     CALL @print
-    NOP
     MOV $RDI, #filename_input
     CALL @blocking_read
-    NOP
     MOV $RDI, #filename_input
     CALL @__kernel__create_file
     RET
-
-
 ; get tow arguments, 2 pointers to strings to compare
 ; gets one parameter, a number to print
 print_number:
@@ -201,8 +181,6 @@ print_number:
         OUT
     ; return 
     RET
-
-
 ; gets 1 argument, the initial location for the data
 blocking_read:
     PUSH $RDI
@@ -222,7 +200,6 @@ blocking_read:
         MOV $RD, 0
         STOR $RD
         RET
-    
 ; gets 1 argument, the initial position of the data
 print:
     PUSH $RDI
@@ -237,7 +214,6 @@ print:
         JMP @__print__get_char
     __print__ret:
     RET
-
 ; get 2 arguments, 2 addresses of null - terminated strings to compare
 strcmp:
     __strcmp__load_first_value:
@@ -269,7 +245,6 @@ strcmp:
         JMP @__strcmp__exit
     __strcmp__exit:
         RET
-
 strcpy:
     PUSH $RDI
     PUSH $RSI
@@ -291,7 +266,6 @@ strcpy:
         POP $RSI
         POP $RDI
         RET
-
 strlen:
     PUSH $RDI
     MOV $RA, 1
@@ -307,13 +281,11 @@ strlen:
     __strlen__exit:
         POP $RDI
         RET
-
 ; kernel code. this code is related to the abstraction of the Operating System
 ; and it is not a command (there are commands that use this code, but the user
 ; shouldn't use these function as command)
 kernel:
     ; welcome to the underworld.
-
     __kernel__boot:
         __kernel__boot__load_filename_address:
             MOV $RB, #last_file_name
@@ -324,38 +296,11 @@ kernel:
             MOV $RA, #files_data
             STOR $RA
         RET
-
     __kernel__create_file:
         OUT 'K'
         OUT 'C'
         OUT 'F'
         OUT 10
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
         __kernel__create_file__copy_filename:
             ; RDI is the name of the file 
             MOV $RB, #last_file_name
@@ -363,7 +308,6 @@ kernel:
             ; RSI now contains the new address of the filename
             CALL @strcpy
         __kernel__create_file__update_file_with_his_name:
-            NOP
             MOV $RB, #last_file_descriptor
             LOAD $RDI
             CALL @__kernel__get_address_from_fd
@@ -376,43 +320,33 @@ kernel:
             LOAD $RDI
             CALL @strlen
             ; the length is in register $RA
-            NOP
             CHMR
-            NOP
             ADD $RA, $RDI
-            NOP
             CHMC
-            NOP
             MOV $RB, #last_file_name
             STOR $RA
         CALL @__kernel__increase_last_fd
         RET
-
         __kernel__get_filename_from_fd:
             CALL @__kernel__get_address_from_fd
             RET
-
         __kernel__get_data_from_fd:
             CALL @__kernel__get_address_from_fd
             ADD $RA, 1
             RET
-
         __kernel__get_last_fd:
             MOV $RB, #last_file_descriptor
             LOAD $RA
             RET
-
         __kernel__increase_last_fd:
             PUSH $RA
             PUSH $RA
             POP $RDI
             CALL @__kernel__get_last_fd
-            NOP
             ADD $RA, 1
             STOR $RA
             POP $RA
             RET
-
         __kernel__get_address_from_fd:
             ; multiply by 2 because it is the size of the file
             MUL $RDI, 2
