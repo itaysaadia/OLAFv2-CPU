@@ -18,12 +18,54 @@ class Oasm(ABC):
 
 class OasmData(Oasm):
     regex = re.compile(
-        r"(string|int)\s(\w+)\s=\s\"(.+)\"")
-    def __init__(self, var_type, name, value):
+        r"(char|int)\s(\w+)\[(\d+)\]")
+
+    def __init__(self, var_type, name, length, address):
+        self.var_type = var_type
+        self.name = name
+
+        if length:
+            if type(length) is str:
+                self.length = int(length, 16) if length.startswith("0x") else int(length)
+            elif type(length) is int:
+                self.length = length
+            else:
+                raise SyntaxError(f"bad legnth type {type(length)}")
+        elif self.var_type == "int":
+            self.length = 1
+        # self.assembly = "0 " * self.length
+        self.address = address
+
+    def parse(self):
+        logger.debug(f"parsing data. {self}")
+        return self.assembly
+        
+    def __len__(self) -> int:
+        return self.length
+
+    def __str__(self):
+        return f"{self.var_type} {self.name}[{self.length}] at {hex(self.address)}"
+    
+    def __repr__(self):
+        return f"<OasmData {str(self)}>"
+
+            
+class OasmRoData(Oasm):
+    regex = re.compile(
+        r"(char|int)\s(\w+)(?:\[(\d*)\])?\s=\s\"(.+)\"")
+
+    def __init__(self, var_type, name, length, value, address):
         self.var_type = var_type
         self.name = name
         self.value = value
-        self.address = 0
+
+        if length:
+            self.length = length
+        elif self.var_type == "int":
+            self.length = 1
+        else:
+            self.length = len(self.value) + 1
+        self.address = address
 
     def parse(self):
         logger.debug(f"parsing rodata.")
@@ -33,24 +75,25 @@ class OasmData(Oasm):
         if self.var_type == "int":
             assert int(self.value, base=10 if not self.value.startswith("0x") else 16) <= 0xff
             self.assembly += hex(int(self.value, base=10 if not self.value.startswith("0x") else 16))[2:]
-        elif self.var_type == "string": 
+        elif self.var_type == "char": 
             for char in self.value:
                 self.assembly += f"{hex(ord(char))[2:]} "
             self.assembly += "0"
+        else:
+            raise SyntaxError("invalid type")
         self.assembly += " "
         logger.debug(f"data found! {self} is ({self.assembly})")
         return self.assembly
-        
-    def __len__(self):
-        return len(self.value) + 1 if self.var_type == "string" else 1
-    
+
     def __str__(self):
-        return f"{self.var_type} {self.name} = {self.value}"
-
+        return f"{self.var_type} {self.name}[{self.length}] = {self.value}"
+        
     def __repr__(self):
-        return f"<OasmData {str(self)}>"
+        return f"<OasmRoData {str(self)}>"
 
-            
+    def __len__(self) -> int:
+        return self.length
+
 
 class OasmText(Oasm):
     regex = re.compile(
@@ -118,15 +161,11 @@ class OasmText(Oasm):
         return self.assembly
 
     def __str__(self):
-        return f"opcode={self.opcode}, source={self.source}, destination={self.destination}"
+        return f"opcode={self.opcode}, source={self.source}, destination={self.destination} @{hex(self.line)}"
 
     def __repr__(self):
         return f"<OasmText: {self.opcode} {self.source}, {self.destination}>"
 
-
-class OasmRoData(OasmData):
-    def __repr__(self):
-        return f"<OasmRoData {str(self)}>"
 
 segments = {
     ".rodata": OasmRoData,
