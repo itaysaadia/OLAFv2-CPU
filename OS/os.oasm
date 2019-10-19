@@ -71,26 +71,35 @@ read_command:
 
 
 parse_command:
-    MOV $RDI, #command
-    MOV $RSI, #cls
-    CALL @strcmp
-    TEST $RA, 1
-    JEQ @__parse_command__call_cls
-    MOV $RDI, #command
-    MOV $RSI, #ls
-    CALL @strcmp
-    TEST $RA, 1
-    JEQ @__parse_command__call_ls
-    MOV $RDI, #command
-    MOV $RSI, #reset
-    CALL @strcmp
-    TEST $RA, 1
-    JEQ @__parse_command__call_reset
-    MOV $RDI, #command
-    MOV $RSI, #touch
-    CALL @strcmp
-    TEST $RA, 1
-    JEQ @__parse_command__call_touch
+    __parse_command__test_cls:
+        MOV $RDI, #command
+        MOV $RSI, #cls
+        CALL @strcmp
+        TEST $RA, 1
+        JEQ @__parse_command__call_cls
+    __parse_command__test_ls:
+        MOV $RDI, #command
+        MOV $RSI, #ls
+        CALL @strcmp
+        TEST $RA, 1
+        JEQ @__parse_command__call_ls
+        MOV $RDI, #command
+        MOV $RSI, #reset
+        CALL @strcmp
+        TEST $RA, 1
+        JEQ @__parse_command__call_reset
+    __parse_command__test_touch:
+        MOV $RDI, #command
+        MOV $RSI, #touch
+        CALL @strcmp
+        TEST $RA, 1
+        JEQ @__parse_command__call_touch
+    __parse_command__test_rm:
+        MOV $RDI, #command
+        MOV $RSI, #rm
+        CALL @strcmp
+        TEST $RA, 1
+        JEQ @__parse_command__call_rm
     __parse_command__command_not_found:
         MOV $RDI, #command
         CALL @print
@@ -110,6 +119,8 @@ parse_command:
         CALL @reset
     __parse_command__call_ls:
         CALL @ls
+    __parse_command__call_rm:
+        CALL @rm
         JMP @prompt
 
 
@@ -159,48 +170,13 @@ touch:
     RET
 
 
-; get tow arguments, 2 pointers to strings to compare
-; gets one parameter, a number to print
-print_number:
-    PUSH $RDI
-    TEST $RDI, 100
-    JST @__print_number__ST_100
-    __print_number__BT_100:
-        ; get Xxx digit
-        DIV $RDI, 100
-        ; make printable
-        PUSH $RDI
-        POP $RD
-        ADD $RD, 0x30
-        ; print
-        OUT
-        JMP @__print_number__BT_10
-    __print_number__ST_100:
-        TEST $RDI, 10
-        JST @__print_number__ST_10
-        __print_number__BT_10:
-            POP $RDI
-            PUSH $RDI
-            ; get xXx digit
-            MOD $RDI, 100
-            DIV $RDI, 10
-            ; make printable
-            PUSH $RDI
-            POP $RD
-            ADD $RD, 0x30
-            ; print 
-            OUT
-    __print_number__ST_10:
-        ; get xxX digit
-        POP $RDI
-        MOD $RDI, 10
-        ; make printable
-        PUSH $RDI
-        POP $RD
-        ; print 
-        ADD $RD, 0x30
-        OUT
-    ; return 
+rm: 
+    MOV $RDI, #GET_FILENAME
+    CALL @print
+    MOV $RDI, #filename_input
+    CALL @blocking_read
+    MOV $RDI, #filename_input
+    CALL @__kernel__delete_file
     RET
 
 
@@ -331,7 +307,7 @@ kernel:
         RET
 
 
-__kernel__create_file:
+    __kernel__create_file:
         __kernel__create_file__copy_filename:
             ; RDI is the name of the file 
             MOV $RB, #last_file_name
@@ -359,6 +335,19 @@ __kernel__create_file:
         CALL @__kernel__increase_last_fd
         RET
 
+
+    __kernel__delete_file:
+        ; =========== TODO =============     add deleted
+        RET
+
+
+    __kernel__get_next_fd:
+        PUSH $RDI
+        POP $RA
+        ADD $RA, 1
+        ; =========== TODO =============     add if not deleted
+        RET
+        
 
 __kernel__get_filename_from_fd:
             CALL @__kernel__get_address_from_fd
