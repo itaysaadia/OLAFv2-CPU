@@ -20,11 +20,14 @@ class Opcodes(Enum):
 
     # relations
     TEST = 0x0c  # update the flags with substraction of a register and a constant
-    TSTR = 0x0d  # update the flags with substraction of two registers
+
+    # mode
+    CHMC = 0x0d
+    CHMR = 0x0e
 
     # ram
-    LOAD = 0x0e
-    STOR = 0x0f
+    LOAD = 0x0f
+    STOR = 0x10
 
     # control flow
     JMP  = 0x11  # jump every time

@@ -5,34 +5,56 @@
 ; data in the beginning of the memory.
 
 ; strings 
-string OS_NAME = "OLAFv2"
-string GET_USERNAME = "enter username: "
-string NO_COMMAND = "command not found"
+char OS_NAME[] = "OLAFv2"
+char GET_USERNAME[] = "enter username: "
+char NO_COMMAND[] = "command not found"
+char GET_FILENAME[] = "enter filename: "
 
 ; commands
-string ls = "ls"
-string rm = "rm"
-string cat = "cat"
-string cls = "cls"
-string edit = "edit"
-string reset = "reset"
+char touch[] = "touch"
+char rm[] = "rm"
+char ls[] = "ls"
+char cat[] = "cat"
+char cls[] = "cls"
+char edit[] = "edit"
+char reset[] = "reset"
+
+
+.data
+
+char username[128]
+char command[128]
+char filename_input[256]
+
+; files
+int last_file_descriptor[1]
+int last_file_name[1]
+int last_file_data[1]
+char file_maps[512]
+char files_names[3840]
+char files_data[40960]
+
 
 .text
 
-boot_msg:
-    MOV $RDI, #OS_NAME
-    CALL @print
-    OUT 10
+; boot should be a part of the kernel!
+; TODO add jmp here to the kernel
+boot:
+    CALL @__kernel__boot
+    __boot__boot_msg:
+        MOV $RDI, #OS_NAME
+        CALL @print
+        OUT 10
 
 get_username:
     MOV $RDI, #GET_USERNAME
     CALL @print
     NOP
-    MOV $RDI, #DATA_START
+    MOV $RDI, #username
     CALL @blocking_read
 
 prompt:
-    MOV $RDI, #DATA_START
+    MOV $RDI, #username
     CALL @print
     OUT '@'
     MOV $RDI, #OS_NAME
@@ -41,26 +63,40 @@ prompt:
     OUT 0x20
 
 read_command:
-    MOV $RDI, 0x90
+    MOV $RDI, #command
     CALL @blocking_read
 
 parse_command:
     NOP
-    MOV $RDI, 0x90
+    MOV $RDI, #command
     NOP
     MOV $RSI, #cls
     CALL @strcmp
     TEST $RA, 1
     JEQ @__parse_command__call_cls
     NOP
-    MOV $RDI, 0x90
+    MOV $RDI, #command
+    NOP
+    MOV $RSI, #ls
+    CALL @strcmp
+    TEST $RA, 1
+    JEQ @__parse_command__call_ls
+    NOP
+    MOV $RDI, #command
     NOP
     MOV $RSI, #reset
     CALL @strcmp
     TEST $RA, 1
     JEQ @__parse_command__call_reset
-    __parse_command__jmp_prompt:
-        MOV $RDI, 0x90
+    NOP
+    MOV $RDI, #command
+    NOP
+    MOV $RSI, #touch
+    CALL @strcmp
+    TEST $RA, 1
+    JEQ @__parse_command__call_touch
+    __parse_command__command_not_found:
+        MOV $RDI, #command
         CALL @print
         OUT ':'
         OUT 0x20
@@ -71,9 +107,34 @@ parse_command:
     __parse_command__call_cls:
         CALL @cls
         JMP @prompt
+    __parse_command__call_touch:
+        CALL @touch
+        JMP @prompt
     __parse_command__call_reset:
         CALL @reset
+    __parse_command__call_ls:
+        CALL @ls
+        JMP @prompt
 
+ls:
+    ; set $RA to the max fd
+    MOV $RC, 0
+    __ls__print_next_file_name:
+        CALL @__kernel__get_last_fd
+        CHMR
+        TEST $RA, $RC
+        CHMC
+        JEQ @__ls__exit
+        PUSH $RC
+        POP $RDI
+        CALL @__kernel__get_filename_from_fd
+        PUSH $RA
+        POP $RDI
+        CALL @print
+        ADD $RC, 1
+        JMP @__ls__print_next_file_name
+    __ls__exit:
+        RET
 reset:
     OUT 'b'
     OUT 'y'
@@ -84,6 +145,18 @@ reset:
 cls:
     OUT 0x0c
     RET
+
+touch: 
+    MOV $RDI, #GET_FILENAME
+    CALL @print
+    NOP
+    MOV $RDI, #filename_input
+    CALL @blocking_read
+    NOP
+    MOV $RDI, #filename_input
+    CALL @__kernel__create_file
+    RET
+
 
 ; get tow arguments, 2 pointers to strings to compare
 ; gets one parameter, a number to print
@@ -178,13 +251,16 @@ strcmp:
         LOAD $RC
         ADD $RSI, 1
     __strcmp__check_if_equals:
-        TSTR $RA, $RC
+        CHMR
+        TEST $RA, $RC
+        CHMC
         JNE @__strcmp__not_equals
     __strcmp__check_if_end:
-        ; if it is true it's means that $RC is also \00 because if we got here they both equal
+        ; if it is true it's means that $RC is also \00 because if we got
+        ; here they both equal
         TEST $RA, 0
         JEQ @__strcmp__equals
-        JMP @strcmp
+        JMP @__strcmp__load_first_value
     __strcmp__equals:
         MOV $RA, 1
         JMP @__strcmp__exit
@@ -193,3 +269,155 @@ strcmp:
         JMP @__strcmp__exit
     __strcmp__exit:
         RET
+
+strcpy:
+    PUSH $RDI
+    PUSH $RSI
+    __strcpy__copy:
+        ; load the data in RDI to RSI
+        PUSH $RDI
+        POP $RB
+        LOAD $RA
+        PUSH $RSI
+        POP $RB
+        STOR $RA
+        ; we are testing this after the write because we want to add the null
+        TEST $RA, 0
+        JEQ @__strcpy__exit
+        ADD $RDI, 1
+        ADD $RSI, 1
+        JMP @__strcpy__copy
+    __strcpy__exit:
+        POP $RSI
+        POP $RDI
+        RET
+
+strlen:
+    PUSH $RDI
+    MOV $RA, 1
+    __strlen__count:
+        PUSH $RDI
+        POP $RB
+        LOAD $RC
+        TEST $RC, 0
+        JEQ @__strlen__exit
+        ADD $RA, 1
+        ADD $RDI, 1
+        JMP @__strlen__count
+    __strlen__exit:
+        POP $RDI
+        RET
+
+; kernel code. this code is related to the abstraction of the Operating System
+; and it is not a command (there are commands that use this code, but the user
+; shouldn't use these function as command)
+kernel:
+    ; welcome to the underworld.
+
+    __kernel__boot:
+        __kernel__boot__load_filename_address:
+            MOV $RB, #last_file_name
+            MOV $RA, #files_names
+            STOR $RA
+        __kernel__boot__load__file_data_address:
+            MOV $RB, #last_file_data
+            MOV $RA, #files_data
+            STOR $RA
+        RET
+
+    __kernel__create_file:
+        OUT 'K'
+        OUT 'C'
+        OUT 'F'
+        OUT 10
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        __kernel__create_file__copy_filename:
+            ; RDI is the name of the file 
+            MOV $RB, #last_file_name
+            LOAD $RSI
+            ; RSI now contains the new address of the filename
+            CALL @strcpy
+        __kernel__create_file__update_file_with_his_name:
+            NOP
+            MOV $RB, #last_file_descriptor
+            LOAD $RDI
+            CALL @__kernel__get_address_from_fd
+            PUSH $RA
+            POP $RB
+            ; write to the file his name
+            STOR $RSI 
+        __kernel__create_file__increase_last_filename:
+            MOV $RB, #last_file_name
+            LOAD $RDI
+            CALL @strlen
+            ; the length is in register $RA
+            NOP
+            CHMR
+            NOP
+            ADD $RA, $RDI
+            NOP
+            CHMC
+            NOP
+            MOV $RB, #last_file_name
+            STOR $RA
+        CALL @__kernel__increase_last_fd
+        RET
+
+        __kernel__get_filename_from_fd:
+            CALL @__kernel__get_address_from_fd
+            RET
+
+        __kernel__get_data_from_fd:
+            CALL @__kernel__get_address_from_fd
+            ADD $RA, 1
+            RET
+
+        __kernel__get_last_fd:
+            MOV $RB, #last_file_descriptor
+            LOAD $RA
+            RET
+
+        __kernel__increase_last_fd:
+            PUSH $RA
+            PUSH $RA
+            POP $RDI
+            CALL @__kernel__get_last_fd
+            NOP
+            ADD $RA, 1
+            STOR $RA
+            POP $RA
+            RET
+
+        __kernel__get_address_from_fd:
+            ; multiply by 2 because it is the size of the file
+            MUL $RDI, 2
+            ; add to the address of file_maps because we want to reach the address
+            ADD $RDI, #file_maps
+            PUSH $RDI
+            POP $RA
+            RET
