@@ -1,8 +1,10 @@
 ; This is the Operating System for OLAFv2, written by Itay Saadia (2019).
 
+
 .rodata
 ; this section will create an image of the RAM that contains a block of 
 ; data in the beginning of the memory.
+
 
 ; strings 
 char OS_NAME[] = "OLAFv2"
@@ -26,6 +28,7 @@ char username[128]
 char command[128]
 char filename_input[256]
 
+
 ; files
 int last_file_descriptor[1]
 int last_file_name[1]
@@ -37,19 +40,21 @@ char files_data[40960]
 
 .text
 
-; boot should be a part of the kernel!
-; TODO add jmp here to the kernel
 boot:
     CALL @__kernel__boot
     __boot__boot_msg:
         MOV $RDI, #OS_NAME
         CALL @print
         OUT 10
+
+
 get_username:
     MOV $RDI, #GET_USERNAME
     CALL @print
     MOV $RDI, #username
     CALL @blocking_read
+
+
 prompt:
     MOV $RDI, #username
     CALL @print
@@ -58,9 +63,13 @@ prompt:
     CALL @print
     OUT '#'
     OUT 0x20
+
+
 read_command:
     MOV $RDI, #command
     CALL @blocking_read
+
+
 parse_command:
     MOV $RDI, #command
     MOV $RSI, #cls
@@ -102,6 +111,8 @@ parse_command:
     __parse_command__call_ls:
         CALL @ls
         JMP @prompt
+
+
 ls:
     ; set $RA to the max fd
     MOV $RC, 0
@@ -115,21 +126,29 @@ ls:
         POP $RDI
         CALL @__kernel__get_filename_from_fd
         PUSH $RA
-        POP $RDI
+        POP $RB
+        LOAD $RDI
         CALL @print
+        OUT 10
         ADD $RC, 1
         JMP @__ls__print_next_file_name
     __ls__exit:
         RET
+
+
 reset:
     OUT 'b'
     OUT 'y'
     OUT 'b'
     CALL @blocking_read
     RST
+
+
 cls:
     OUT 0x0c
     RET
+
+
 touch: 
     MOV $RDI, #GET_FILENAME
     CALL @print
@@ -138,6 +157,8 @@ touch:
     MOV $RDI, #filename_input
     CALL @__kernel__create_file
     RET
+
+
 ; get tow arguments, 2 pointers to strings to compare
 ; gets one parameter, a number to print
 print_number:
@@ -181,6 +202,8 @@ print_number:
         OUT
     ; return 
     RET
+
+
 ; gets 1 argument, the initial location for the data
 blocking_read:
     PUSH $RDI
@@ -200,6 +223,8 @@ blocking_read:
         MOV $RD, 0
         STOR $RD
         RET
+
+
 ; gets 1 argument, the initial position of the data
 print:
     PUSH $RDI
@@ -214,6 +239,8 @@ print:
         JMP @__print__get_char
     __print__ret:
     RET
+
+
 ; get 2 arguments, 2 addresses of null - terminated strings to compare
 strcmp:
     __strcmp__load_first_value:
@@ -245,6 +272,8 @@ strcmp:
         JMP @__strcmp__exit
     __strcmp__exit:
         RET
+
+
 strcpy:
     PUSH $RDI
     PUSH $RSI
@@ -266,6 +295,8 @@ strcpy:
         POP $RSI
         POP $RDI
         RET
+
+
 strlen:
     PUSH $RDI
     MOV $RA, 1
@@ -281,6 +312,8 @@ strlen:
     __strlen__exit:
         POP $RDI
         RET
+
+
 ; kernel code. this code is related to the abstraction of the Operating System
 ; and it is not a command (there are commands that use this code, but the user
 ; shouldn't use these function as command)
@@ -296,11 +329,9 @@ kernel:
             MOV $RA, #files_data
             STOR $RA
         RET
-    __kernel__create_file:
-        OUT 'K'
-        OUT 'C'
-        OUT 'F'
-        OUT 10
+
+
+__kernel__create_file:
         __kernel__create_file__copy_filename:
             ; RDI is the name of the file 
             MOV $RB, #last_file_name
@@ -327,18 +358,26 @@ kernel:
             STOR $RA
         CALL @__kernel__increase_last_fd
         RET
-        __kernel__get_filename_from_fd:
+
+
+__kernel__get_filename_from_fd:
             CALL @__kernel__get_address_from_fd
             RET
-        __kernel__get_data_from_fd:
+
+
+__kernel__get_data_from_fd:
             CALL @__kernel__get_address_from_fd
             ADD $RA, 1
             RET
-        __kernel__get_last_fd:
+
+
+__kernel__get_last_fd:
             MOV $RB, #last_file_descriptor
             LOAD $RA
             RET
-        __kernel__increase_last_fd:
+
+
+__kernel__increase_last_fd:
             PUSH $RA
             PUSH $RA
             POP $RDI
@@ -347,7 +386,9 @@ kernel:
             STOR $RA
             POP $RA
             RET
-        __kernel__get_address_from_fd:
+
+
+__kernel__get_address_from_fd:
             ; multiply by 2 because it is the size of the file
             MUL $RDI, 2
             ; add to the address of file_maps because we want to reach the address
