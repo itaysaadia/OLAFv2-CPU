@@ -178,7 +178,7 @@ class OLAFAssembler:
     type=click.File("w"),
     help='The ROM file which will output')
 @click.option('--output-ram', 
-    default="OS/BOOT.ram",
+    default="OS/initram.ram",
     type=click.File("w"),
     help='The RAM file which will output')
 @click.option('--input-file',
