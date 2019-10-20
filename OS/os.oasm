@@ -141,10 +141,11 @@ ls:
         POP $RB
         LOAD $RDI
         CALL @print
-        OUT 10
+        OUT 9
         ADD $RC, 1
         JMP @__ls__print_next_file_name
     __ls__exit:
+        OUT 10
         RET
 
 
