@@ -119,6 +119,7 @@ parse_command:
         CALL @reset
     __parse_command__call_ls:
         CALL @ls
+        JMP @prompt
     __parse_command__call_rm:
         CALL @rm
         JMP @prompt
