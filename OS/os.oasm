@@ -5,7 +5,6 @@
 ; this section will create an image of the RAM that contains a block of 
 ; data in the beginning of the memory.
 
-
 ; strings 
 char OS_NAME[] = "OLAFv2"
 char GET_USERNAME[] = "enter username: "
@@ -141,11 +140,10 @@ ls:
         POP $RB
         LOAD $RDI
         CALL @print
-        OUT 9
+        OUT 10
         ADD $RC, 1
         JMP @__ls__print_next_file_name
     __ls__exit:
-        OUT 10
         RET
 
 
@@ -342,6 +340,31 @@ kernel:
         ; =========== TODO =============     add deleted
         RET
 
+
+    ; this function gets 1 arguments (file name)
+    ; and returns the corresponding file descriptor
+    __kernel__find_file:
+        PUSH $RDI
+        POP $RSI
+        MOV $RC, 0
+        __kernel__find_file__check_next_file_name:
+            CALL @__kernel__get_last_fd
+            CHMR
+            TEST $RA, $RC
+            CHMC
+            JEQ @___kernel__find_file__exit
+            PUSH $RC
+            POP $RDI
+            CALL @__kernel__get_filename_from_fd
+            PUSH $RA
+            POP $RB
+            LOAD $RDI
+            CALL @print
+            OUT 10
+            ADD $RC, 1
+            JMP @__ls__print_next_file_name
+        ___kernel__find_file__exit:
+            RET
 
     __kernel__get_next_fd:
         PUSH $RDI
