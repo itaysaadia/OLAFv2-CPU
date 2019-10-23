@@ -386,13 +386,10 @@ kernel:
             PUSH $RA
             POP $RDI
             CALL @strcmp
-            CHMR
-            TEST $RA, $RC
-            CHMC
+            TEST $RA, 1
             JEQ @__kernel__find_file__found
-            OUT 10
             ADD $RC, 1
-            JMP @__ls__print_next_file_name
+            JMP @__kernel__find_file__check_next_file_name
         __kernel__find_file__found:
             PUSH $RC
             POP $RA
