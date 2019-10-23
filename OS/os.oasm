@@ -99,6 +99,10 @@ parse_command:
         CALL @strcmp
         TEST $RA, 1
         JEQ @__parse_command__call_rm
+    MOV $RB, #command
+    LOAD $RB
+    TEST $RB, 0
+    JEQ @__parse_command__goto_prompt
     __parse_command__command_not_found:
         MOV $RDI, #command
         CALL @print
@@ -107,6 +111,7 @@ parse_command:
         MOV $RDI, #NO_COMMAND
         CALL @print
         OUT 10
+    __parse_command__goto_prompt:
         JMP @prompt
     __parse_command__call_cls:
         CALL @cls
@@ -137,8 +142,7 @@ ls:
         POP $RDI
         CALL @__kernel__get_filename_from_fd
         PUSH $RA
-        POP $RB
-        LOAD $RDI
+        POP $RDI
         CALL @print
         OUT 10
         ADD $RC, 1
@@ -181,19 +185,32 @@ rm:
 
 
 ; gets 1 argument, the initial location for the data
+; returns the number of chars gets
 blocking_read:
     PUSH $RDI
     POP $RB
+    MOV $RA, 0
     __blocking_read__get_char:
         GET $RD
         TEST $RD, 0
         JEQ @__blocking_read__get_char
+        ; compare with backspace
+        TEST $RD, 0x8
+        JEQ @__blocking_read__backspace
         OUT
         TEST $RD, 10
         JEQ @__blocking_read__return
         __blocking_read__not_zero:
             STOR $RD
             ADD $RB, 1
+            ADD $RA, 1
+            JMP @__blocking_read__get_char
+        __blocking_read__backspace:
+            TEST $RA, 0
+            JEQ @__blocking_read__get_char
+            SUB $RB, 1
+            SUB $RA, 1
+            OUT
             JMP @__blocking_read__get_char
     __blocking_read__return:
         MOV $RD, 0
@@ -317,7 +334,7 @@ kernel:
         __kernel__create_file__update_file_with_his_name:
             MOV $RB, #last_file_descriptor
             LOAD $RDI
-            CALL @__kernel__get_address_from_fd
+            CALL @__kernel__get_kernel_file_from_fd
             PUSH $RA
             POP $RB
             ; write to the file his name
@@ -336,14 +353,24 @@ kernel:
         RET
 
 
+    ; this function gets one argument, a pointer to a filename
+    ; to delete
     __kernel__delete_file:
-        ; =========== TODO =============     add deleted
-        RET
+        CALL @__kernel__find_file
+        TEST $RA, 0xffff
+        JEQ @__kernel__delete_file__exit
+        PUSH $RA
+        POP $RDI
+        CALL @__kernel__get_kernel_file_from_fd
+        __kernel__delete_file__exit:
+            RET
 
 
     ; this function gets 1 arguments (file name)
     ; and returns the corresponding file descriptor
     __kernel__find_file:
+        ; setting $RSI to $RDI's value for the function @strcmp. we are doing 
+        ; this right now because the value of $RDI is changing during execution
         PUSH $RDI
         POP $RSI
         MOV $RC, 0
@@ -352,18 +379,27 @@ kernel:
             CHMR
             TEST $RA, $RC
             CHMC
-            JEQ @___kernel__find_file__exit
+            JEQ @__kernel__find_file__not_found
             PUSH $RC
             POP $RDI
             CALL @__kernel__get_filename_from_fd
             PUSH $RA
-            POP $RB
-            LOAD $RDI
-            CALL @print
+            POP $RDI
+            CALL @strcmp
+            CHMR
+            TEST $RA, $RC
+            CHMC
+            JEQ @__kernel__find_file__found
             OUT 10
             ADD $RC, 1
             JMP @__ls__print_next_file_name
-        ___kernel__find_file__exit:
+        __kernel__find_file__found:
+            PUSH $RC
+            POP $RA
+            JMP @__kernel__find_file__exit
+        __kernel__find_file__not_found:
+            MOV $RA, 0xffff
+        __kernel__find_file__exit:
             RET
 
     __kernel__get_next_fd:
@@ -374,24 +410,27 @@ kernel:
         RET
         
 
-__kernel__get_filename_from_fd:
-            CALL @__kernel__get_address_from_fd
+    __kernel__get_filename_from_fd:
+            CALL @__kernel__get_kernel_file_from_fd
+            PUSH $RA
+            POP $RB
+            LOAD $RA
             RET
 
 
-__kernel__get_data_from_fd:
-            CALL @__kernel__get_address_from_fd
+    __kernel__get_data_from_fd:
+            CALL @__kernel__get_kernel_file_from_fd
             ADD $RA, 1
             RET
 
 
-__kernel__get_last_fd:
+    __kernel__get_last_fd:
             MOV $RB, #last_file_descriptor
             LOAD $RA
             RET
 
 
-__kernel__increase_last_fd:
+    __kernel__increase_last_fd:
             PUSH $RA
             PUSH $RA
             POP $RDI
@@ -402,10 +441,11 @@ __kernel__increase_last_fd:
             RET
 
 
-__kernel__get_address_from_fd:
+    __kernel__get_kernel_file_from_fd:
             ; multiply by 2 because it is the size of the file
             MUL $RDI, 2
-            ; add to the address of file_maps because we want to reach the address
+            ; add to the address of file_maps because we
+            ; want to reach the address
             ADD $RDI, #file_maps
             PUSH $RDI
             POP $RA
