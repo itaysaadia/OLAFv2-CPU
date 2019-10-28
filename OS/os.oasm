@@ -236,6 +236,7 @@ print:
 
 ; get 2 arguments, 2 addresses of null - terminated strings to compare
 strcmp:
+    PUSH $RC
     __strcmp__load_first_value:
         PUSH $RDI
         POP $RB
@@ -264,6 +265,7 @@ strcmp:
         MOV $RA, 0
         JMP @__strcmp__exit
     __strcmp__exit:
+        POP $RC
         RET
 
 
@@ -291,6 +293,7 @@ strcpy:
 
 
 strlen:
+    PUSH $RC
     PUSH $RDI
     MOV $RA, 1
     __strlen__count:
@@ -304,6 +307,7 @@ strlen:
         JMP @__strlen__count
     __strlen__exit:
         POP $RDI
+        POP $RC
         RET
 
 
@@ -359,10 +363,12 @@ kernel:
         CALL @__kernel__find_file
         TEST $RA, 0xffff
         JEQ @__kernel__delete_file__exit
+        OUT 'A'
         PUSH $RA
         POP $RDI
         CALL @__kernel__get_kernel_file_from_fd
         __kernel__delete_file__exit:
+            OUT 'B'
             RET
 
 
@@ -439,6 +445,7 @@ kernel:
 
 
     __kernel__get_kernel_file_from_fd:
+            PUSH $RDI
             ; multiply by 2 because it is the size of the file
             MUL $RDI, 2
             ; add to the address of file_maps because we
@@ -446,4 +453,5 @@ kernel:
             ADD $RDI, #file_maps
             PUSH $RDI
             POP $RA
+            POP $RDI
             RET
