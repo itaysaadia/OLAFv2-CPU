@@ -6,6 +6,7 @@
 ; data in the beginning of the memory.
 
 ; strings 
+char TODO_DELETE_ME[] = "ZERO POINTER"
 char OS_NAME[] = "OLAFv2"
 char GET_USERNAME[] = "enter username: "
 char NO_COMMAND[] = "command not found"
@@ -130,9 +131,11 @@ parse_command:
 
 
 ls:
-    ; set $RA to the max fd
-    MOV $RC, 0
+    CALL @__kernel__get_next_fd
+    PUSH $RA
+    POP $RC
     __ls__print_next_file_name:
+        ; set $RA to the max fd
         CALL @__kernel__get_last_fd
         CHMR
         TEST $RA, $RC
@@ -313,7 +316,7 @@ strlen:
 
 ; kernel code. this code is related to the abstraction of the Operating System
 ; and it is not a command (there are commands that use this code, but the user
-; shouldn't use these function as command)
+; shouldn't use these function as commands)
 kernel:
     ; welcome to the underworld.
     __kernel__boot:
@@ -363,12 +366,17 @@ kernel:
         CALL @__kernel__find_file
         TEST $RA, 0xffff
         JEQ @__kernel__delete_file__exit
-        OUT 'A'
         PUSH $RA
         POP $RDI
         CALL @__kernel__get_kernel_file_from_fd
         __kernel__delete_file__exit:
-            OUT 'B'
+            PUSH $RA
+            POP $RB
+            MOV $RA, 0
+            STOR $RA
+            ADD $RB, 1
+            STOR $RA
+            MOV $RA, 1
             RET
 
 
@@ -406,18 +414,49 @@ kernel:
             RET
 
     __kernel__get_next_fd:
+        ; calculate
         PUSH $RDI
-        POP $RA
-        ADD $RA, 1
-        ; =========== TODO =============     add if not deleted
-        RET
+        PUSH $RD
+        PUSH $RC
+        PUSH $RDI
+        ADD $RDI, 1
+        ; store the current fd + 1 in $RD to keep it for later
+        PUSH $RDI
+        POP $RD
+        ; check if the next file descriptor points to NULL
+        OUT 'A'
+        CALL @__kernel__get_filename_from_fd
+        TEST $RA, 0
+        ; if the name of the fd is not NULL, the file if valid for sure
+        JNE @__kernel__get_next_fd__end
+        CALL @__kernel__get_data_from_fd
+        OUT 'B'
+        TEST $RA, 0
+        JNE @__kernel__get_next_fd__end
+        OUT 'C'
+        ; looks like we got NULL pointer. we check if this is the last fd
+        ; store last fd in $RC 
+        CALL @__kernel__get_last_fd
+        PUSH $RA
+        POP $RC
+        TEST $RA, $RC
+        JNE @__kernel__get_next_fd
+        ; this is both NULL pointer and the last file. 
+        __kernel__get_next_fd__end:
+            OUT 'D'
+            POP $RC
+            POP $RD
+            POP $RDI
+            RET
         
 
     __kernel__get_filename_from_fd:
             CALL @__kernel__get_kernel_file_from_fd
+            PUSH $RB
             PUSH $RA
             POP $RB
             LOAD $RA
+            POP $RB
             RET
 
 
@@ -428,16 +467,20 @@ kernel:
 
 
     __kernel__get_last_fd:
+            PUSH $RB
             MOV $RB, #last_file_descriptor
             LOAD $RA
+            POP $RB
             RET
 
 
     __kernel__increase_last_fd:
             PUSH $RA
+            PUSH $RDI
             PUSH $RA
             POP $RDI
             CALL @__kernel__get_last_fd
+            POP $RDI
             ADD $RA, 1
             STOR $RA
             POP $RA

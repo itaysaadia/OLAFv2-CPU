@@ -20,6 +20,7 @@ typedef struct {
 struct _oasm {
     struct _constants {
         struct _const_strings {
+            char TODO_DELETE_ME[13];
             int16 OS_NAME[7];
             int16 GET_USERNAME[17];
             int16 NO_COMMAND[18];
