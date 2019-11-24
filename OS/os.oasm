@@ -363,12 +363,25 @@ kernel:
         CALL @__kernel__find_file
         TEST $RA, 0xffff
         JEQ @__kernel__delete_file__exit
-        OUT 'A'
+        PUSH $RD
+        PUSH $RA
+        POP $RD
+        ADD $RD, 30
+        OUT
+        POP $RD
         PUSH $RA
         POP $RDI
         CALL @__kernel__get_kernel_file_from_fd
+        PUSH $RB
+        PUSH $RA 
+        POP $RB 
+        MOV $RA, 0 
+        STOR $RA 
+        ADD $RB, 1 
+        STOR $RA 
+        MOV $RA, 1 
+        POP $RB
         __kernel__delete_file__exit:
-            OUT 'B'
             RET
 
 
@@ -401,6 +414,7 @@ kernel:
             POP $RA
             JMP @__kernel__find_file__exit
         __kernel__find_file__not_found:
+            OUT 'N'
             MOV $RA, 0xffff
         __kernel__find_file__exit:
             RET
@@ -427,13 +441,16 @@ kernel:
             RET
 
 
-    __kernel__get_last_fd:
-            MOV $RB, #last_file_descriptor
-            LOAD $RA
-            RET
+    __kernel__get_last_fd: 
+            ;PUSH $RB 
+            MOV $RB, #last_file_descriptor 
+            LOAD $RA 
+            ;POP $RB 
+            RET 
 
 
     __kernel__increase_last_fd:
+            PUSH $RDI
             PUSH $RA
             PUSH $RA
             POP $RDI
@@ -441,6 +458,7 @@ kernel:
             ADD $RA, 1
             STOR $RA
             POP $RA
+            POP $RDI
             RET
 
 
