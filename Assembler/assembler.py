@@ -144,7 +144,7 @@ class OLAFAssembler:
                 
                 if not current_segment_handler.regex.match(line):
                     raise SyntaxError(
-                        f"invalid length of line in line {line_number} of {self.oasm_file.name}: {line}")
+                        f"invalid assembly syntax in line {line_number} of {self.oasm_file.name}: {line}")
                 elif segment == ".text":
                     opcode, source, destination = current_segment_handler.regex.search(line).groups()
                     if line.endswith(":"):
