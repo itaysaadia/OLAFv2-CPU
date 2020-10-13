@@ -10,6 +10,11 @@ char OS_NAME[] = "OLAFv2"
 char GET_USERNAME[] = "enter username: "
 char NO_COMMAND[] = "command not found"
 char GET_FILENAME[] = "enter filename: "
+char HELP0[] = "commands:"
+char HELP1[] = "ls - list the files in the filesystem"
+char HELP2[] = "touch - create a new file"
+char HELP3[] = "cls - clears the screen"
+char HELP4[] = "help - print this help"
 
 ; commands
 char touch[] = "touch"
@@ -19,6 +24,7 @@ char cat[] = "cat"
 char cls[] = "cls"
 char edit[] = "edit"
 char reset[] = "reset"
+char help[] = "help"
 
 
 .data
@@ -93,6 +99,12 @@ parse_command:
         CALL @strcmp
         TEST $RA, 1
         JEQ @__parse_command__call_touch
+    __parse_command__test_help:
+        MOV $RDI, #command
+        MOV $RSI, #help
+        CALL @strcmp
+        TEST $RA, 1
+        JEQ @__parse_command__call_help
     __parse_command__test_rm:
         MOV $RDI, #command
         MOV $RSI, #rm
@@ -126,6 +138,9 @@ parse_command:
         JMP @prompt
     __parse_command__call_rm:
         CALL @rm
+        JMP @prompt
+    __parse_command__call_help:
+        CALL @help
         JMP @prompt
 
 
@@ -183,6 +198,26 @@ rm:
     CALL @__kernel__delete_file
     RET
 
+
+help:
+    MOV $RDI, #HELP0
+    CALL @print
+    OUT 10
+    MOV $RDI, #HELP1
+    CALL @print
+    OUT 10
+    MOV $RDI, #HELP2
+    CALL @print
+    OUT 10
+    MOV $RDI, #HELP3
+    CALL @print
+    OUT 10
+    MOV $RDI, #HELP4
+    CALL @print
+    OUT 10
+
+
+; stdlib
 
 ; gets 1 argument, the initial location for the data
 ; returns the number of chars gets
