@@ -18,7 +18,7 @@ class Oasm(ABC):
 
 class OasmData(Oasm):
     regex = re.compile(
-        r"(char|int)\s(\w+)\[(\d+)\]")
+        r"(char|int)\s(\w+)\[(\d+)\s*\;{0,1}.*")
 
     def __init__(self, var_type, name, length, address):
         self.var_type = var_type
@@ -52,7 +52,7 @@ class OasmData(Oasm):
             
 class OasmRoData(Oasm):
     regex = re.compile(
-        r"(char|int)\s(\w+)(?:\[(\d*)\])?\s=\s\"(.+)\"")
+        r"(char|int)\s(\w+)(?:\[(\d*)\])?\s=\s\"(.+)\"\s*\;{0,1}.*")
 
     def __init__(self, var_type, name, length, value, address):
         self.var_type = var_type
@@ -97,7 +97,7 @@ class OasmRoData(Oasm):
 
 class OasmText(Oasm):
     regex = re.compile(
-        r"^\s*\t*(\w{2,4})[^\S\r\n]?(?:(\$?\'?\w+\'?)){0,}(?:,[^\S\r\n])?([\S\']+){0,}$")
+        r"^\s*\t*(\w{2,4})[^\S\r\n]?(?:(\$?\'?\w+\'?)){0,}(?:,[^\S\r\n])?([\S\']+){0,}\s*\;{0,1}.*$")
     
     # commands that the word comes after the opcode represents 8 bits long data
     _opcodes_uses_2nd_param_as_data = [
