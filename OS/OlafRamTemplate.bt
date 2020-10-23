@@ -11,38 +11,47 @@
 //   History: 
 //------------------------------------------------
 
-typedef struct {
-    int16 p_filename;
-    int16 p_filedata;
+typedef struct file_map {
+    uint16 p_filename;
+    uint16 p_filedata;
 } FILE_MAP;
 
-
+BigEndian(); 
 struct _oasm {
+    SetForeColor( cWhite );
     struct _constants {
         struct _const_strings {
-            int16 OS_NAME[7];
-            int16 GET_USERNAME[17];
-            int16 NO_COMMAND[18];
-            int16 GET_FILENAME[17];
+            wchar_t OS_NAME[7];
+            wchar_t GET_USERNAME[17];
+            wchar_t NO_COMMAND[18];
+            wchar_t GET_FILENAME[17];
+            wchar_t HELP0[10];
+            wchar_t HELP1[38];
+            wchar_t HELP2[26];
+            wchar_t HELP3[24];
+            wchar_t HELP4[23];
         } const_strings;
         
         struct _commands {
-            int16 touch[6];
-            int16 rm[3];
-            int16 ls[3];
-            int16 cat[4];
-            int16 cls[4];
-            int16 edit[5];
-            int16 reset[6];
+            wchar_t touch[6];
+            wchar_t rm[3];
+            wchar_t ls[3];
+            wchar_t cat[4];
+            wchar_t cls[4];
+            wchar_t edit[5];
+            wchar_t reset[6];
+            wchar_t help[5];
         } commands;
     } constants;
 
 
+    SetForeColor( cGreen );
     struct _variables {
-        int16 username[128];
-        int16 command[128];
-        int16 filename_input[256];
+        wchar_t username[128];
+        wchar_t command[128];
+        wchar_t filename_input[256];
     } variables;
+    SetForeColor( cRed );
 
     struct _files_kernel {             
         int16 last_file_descriptor[1];
@@ -51,8 +60,8 @@ struct _oasm {
         FILE_MAP file_maps[256];
     } files_kernel;
     struct _files_data {
-        int16 files_names[3840];
-        int16 files_data[4096];
+        wchar_t files_names[3840];
+        wchar_t files_data[4096];
     } files_data;
 } oasm;
 
