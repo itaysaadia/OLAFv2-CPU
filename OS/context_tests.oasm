@@ -1,0 +1,91 @@
+.text
+
+JMP @boot
+
+fun_c:
+    OUT 'C'
+    RET
+
+fun_b:
+    OUT 'B'
+    MOV $RA, 0x4141
+    MOV $RB, 0x4242
+    MOV $RC, 0x4343
+    MOV $RD, 0x9999
+    MOV $RDI, 0x4545
+    MOV $RSI, 0x4646
+    CALL @fun_c
+    RET
+
+save_state:
+    ; store registers
+    PUSH $RC
+    PUSH $RD
+    PUSH $RDI
+    PUSH $RSI
+    
+    ; get return address
+    PUSH $RB
+    PUSH $SP
+    POP $RB
+    ADD $RB, 6
+    PUSH $RA
+    LOAD $RA
+
+    ; store return address after the frame
+    SUB $RB, 7
+    STOR $RA
+
+    ; restore
+    POP $RA
+    POP $RB
+
+    ; return
+    SUB $SP, 3
+    RET
+
+restore_state:
+    ; change frame so I will return to the right location
+    POP $RA
+    PUSH $SP
+    POP $RB
+    ADD $RB, 7
+    STOR $RA
+
+    POP $RA
+    POP $RB
+    POP $RSI
+    POP $RDI
+    POP $RD
+    POP $RC
+    
+    ; remove the restore function ret that I left because I'm lazy
+    ADD $SP, 1
+    RET
+
+fun_a:
+    CALL @save_state
+    SUB $SP, 0x100
+
+
+    OUT 'A'
+    CALL @fun_b
+
+    OUT 'V'
+    ADD $SP, 0x100
+    CALL @restore_state
+    RET
+
+
+
+boot:
+    MOV $RA, 0x111
+    MOV $RB, 0x222
+    MOV $RC, 0x333
+    MOV $RD, 0x444
+    MOV $RDI, 0x555
+    MOV $RSI, 0x666
+    CALL @fun_a
+
+loop:
+    JMP @loop
