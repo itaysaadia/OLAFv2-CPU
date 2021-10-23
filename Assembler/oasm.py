@@ -44,7 +44,7 @@ class OasmData(Oasm):
         return self.length
 
     def __str__(self):
-        return f"{self.var_type} {self.name}[{self.length}] at {hex(self.address)}"
+        return f"{self.var_type} {self.name}[{self.length}] @ {hex(self.address)}"
     
     def __repr__(self):
         return f"<OasmData {str(self)}>"
@@ -86,7 +86,7 @@ class OasmRoData(Oasm):
         return self.assembly
 
     def __str__(self):
-        return f"{self.var_type} {self.name}[{self.length}] = {self.value}"
+        return f"{self.var_type} {self.name}[{self.length}] = {self.value} @ {hex(self.address)}"
         
     def __repr__(self):
         return f"<OasmRoData {str(self)}>"
@@ -161,10 +161,10 @@ class OasmText(Oasm):
         return self.assembly
 
     def __str__(self):
-        return f"opcode={self.opcode}, source={self.source}, destination={self.destination} @{hex(self.line)}"
+        return f"opcode={self.opcode}, source={self.source}, destination={self.destination} @ {hex(self.line)}"
 
     def __repr__(self):
-        return f"<OasmText: {self.opcode} {self.source}, {self.destination}>"
+        return f"<OasmText: {self.opcode} {self.source}, {self.destination} @ {hex(self.line)}>"
 
 
 segments = {
