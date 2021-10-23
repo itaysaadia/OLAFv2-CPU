@@ -2,21 +2,6 @@
 
 JMP @boot
 
-fun_c:
-    OUT 'C'
-    RET
-
-fun_b:
-    OUT 'B'
-    MOV $RA, 0x4141
-    MOV $RB, 0x4242
-    MOV $RC, 0x4343
-    MOV $RD, 0x9999
-    MOV $RDI, 0x4545
-    MOV $RSI, 0x4646
-    CALL @fun_c
-    RET
-
 save_state:
     ; store registers
     PUSH $RC
@@ -46,11 +31,13 @@ save_state:
 
 restore_state:
     ; change frame so I will return to the right location
+    OUT 'R'
     POP $RA
     PUSH $SP
     POP $RB
     ADD $RB, 7
     STOR $RA
+    OUT 'j'
 
     POP $RA
     POP $RB
@@ -59,21 +46,46 @@ restore_state:
     POP $RD
     POP $RC
     
-    ; remove the restore function ret that I left because I'm lazy
-    ADD $SP, 1
+    RET
+
+
+fun_c:
+    MOV $RA, 0x6161
+    MOV $RB, 0x6262
+    MOV $RC, 0x6363
+    MOV $RD, 0x9999
+    MOV $RDI, 0x6565
+    MOV $RSI, 0x6666
+    OUT 'C'
+    ; should be 6161
+    RET
+
+fun_b:
+    MOV $RA, 0x4141
+    MOV $RB, 0x4242
+    MOV $RC, 0x4343
+    MOV $RD, 0x9999
+    MOV $RDI, 0x4545
+    MOV $RSI, 0x4646
+    OUT 'B'
+    CALL @save_state
+    CALL @fun_c
+    CALL @restore_state
+    OUT '+'
     RET
 
 fun_a:
     CALL @save_state
-    SUB $SP, 0x100
-
-
     OUT 'A'
+    ; should be orig
+    ; SUB $SP, 0x100
+
     CALL @fun_b
 
     OUT 'V'
-    ADD $SP, 0x100
+    ; ADD $SP, 0x100
     CALL @restore_state
+    OUT '+'
     RET
 
 
@@ -88,4 +100,5 @@ boot:
     CALL @fun_a
 
 loop:
+    ; should be orig
     JMP @loop
