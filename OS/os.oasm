@@ -45,7 +45,54 @@ char files_data[40960]
 
 
 .text
+JMP @boot
 
+save_context:
+    ; store registers
+    PUSH $RC
+    PUSH $RD
+    PUSH $RDI
+    PUSH $RSI
+    
+    ; get return address
+    PUSH $RB
+    PUSH $SP
+    POP $RB
+    ADD $RB, 6
+    PUSH $RA
+    LOAD $RA
+
+    ; store return address after the frame
+    SUB $RB, 7
+    STOR $RA
+
+    ; restore
+    POP $RA
+    POP $RB
+
+    ; return
+    SUB $SP, 3
+    RET
+
+restore_context:
+    ; change frame so I will return to the right location
+    POP $RA
+    PUSH $SP
+    POP $RB
+    ADD $RB, 7
+    STOR $RA
+
+    POP $RA
+    POP $RB
+    POP $RSI
+    POP $RDI
+    POP $RD
+    POP $RC
+    
+    ; remove the restore function ret that I left because I'm lazy
+    ADD $SP, 1
+    RET
+ 
 boot:
     CALL @__kernel__boot
     __boot__boot_msg:
