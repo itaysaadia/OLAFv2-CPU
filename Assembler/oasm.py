@@ -18,7 +18,7 @@ class Oasm(ABC):
 
 class OasmData(Oasm):
     regex = re.compile(
-        r"(char|int)\s(\w+)\[(\d+)\]")
+        r"(char|int)\s(\w+)\[(\d+)\s*\;{0,1}.*")
 
     def __init__(self, var_type, name, length, address):
         self.var_type = var_type
@@ -44,7 +44,7 @@ class OasmData(Oasm):
         return self.length
 
     def __str__(self):
-        return f"{self.var_type} {self.name}[{self.length}] at {hex(self.address)}"
+        return f"{self.var_type} {self.name}[{self.length}] @ {hex(self.address)}"
     
     def __repr__(self):
         return f"<OasmData {str(self)}>"
@@ -52,7 +52,7 @@ class OasmData(Oasm):
             
 class OasmRoData(Oasm):
     regex = re.compile(
-        r"(char|int)\s(\w+)(?:\[(\d*)\])?\s=\s\"(.+)\"")
+        r"(char|int)\s(\w+)(?:\[(\d*)\])?\s=\s\"(.+)\"\s*\;{0,1}.*")
 
     def __init__(self, var_type, name, length, value, address):
         self.var_type = var_type
@@ -86,7 +86,7 @@ class OasmRoData(Oasm):
         return self.assembly
 
     def __str__(self):
-        return f"{self.var_type} {self.name}[{self.length}] = {self.value}"
+        return f"{self.var_type} {self.name}[{self.length}] = {self.value} @ {hex(self.address)}"
         
     def __repr__(self):
         return f"<OasmRoData {str(self)}>"
@@ -97,7 +97,7 @@ class OasmRoData(Oasm):
 
 class OasmText(Oasm):
     regex = re.compile(
-        r"^\s*\t*(\w{2,4})[^\S\r\n]?(?:(\$?\'?\w+\'?)){0,}(?:,[^\S\r\n])?([\S\']+){0,}$")
+        r"^\s*\t*(\w{2,4})[^\S\r\n]?(?:(\$?\'?\w+\'?)){0,}(?:,[^\S\r\n])?([\S\']+){0,}\s*\;{0,1}.*$")
     
     # commands that the word comes after the opcode represents 8 bits long data
     _opcodes_uses_2nd_param_as_data = [
@@ -161,10 +161,10 @@ class OasmText(Oasm):
         return self.assembly
 
     def __str__(self):
-        return f"opcode={self.opcode}, source={self.source}, destination={self.destination} @{hex(self.line)}"
+        return f"opcode={self.opcode}, source={self.source}, destination={self.destination} @ {hex(self.line)}"
 
     def __repr__(self):
-        return f"<OasmText: {self.opcode} {self.source}, {self.destination}>"
+        return f"<OasmText: {self.opcode} {self.source}, {self.destination} @ {hex(self.line)}>"
 
 
 segments = {

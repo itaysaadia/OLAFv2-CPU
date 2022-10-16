@@ -56,14 +56,14 @@ class Opcodes(Enum):
 
 
 class Registers(Enum):
-    RA  = 0
-    RB  = 1
-    RC  = 2
-    RD  = 3
-    RDI = 4
-    RSI = 5
-    IP  = 6
-    SP  = 7
+    RA  = 0  # general / return value
+    RB  = 1  # used as a destination address in LOAD / STOR command
+    RC  = 2  # general / holds i in loops
+    RD  = 3  # general 
+    RDI = 4  # first parameter
+    RSI = 5  # second parameter
+    IP  = 6  # instruction pointer
+    SP  = 7  # stack pointer
 
 _SIZEOF_OPCODE = 5
 _SIZEOF_SOURCE = 3
