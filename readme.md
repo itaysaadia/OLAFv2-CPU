@@ -8,7 +8,7 @@ Note: this chip is differently from other (and real) CPUs. when I did my researc
 
 I hope you will find this project entertaining and educational as much as I did.
 
-![OLAFv2CPU](.github\images\OLAF.png)
+![OLAFv2CPU](https://raw.githubusercontent.com/itaysaadia/OLAFv2-CPU/master/.github/images/OLAF.png)
 
 Overview
 --------
