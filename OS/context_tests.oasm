@@ -1,0 +1,104 @@
+.text
+
+JMP @boot
+
+save_state:
+    ; store registers
+    PUSH $RC
+    PUSH $RD
+    PUSH $RDI
+    PUSH $RSI
+    
+    ; get return address
+    PUSH $RB
+    PUSH $SP
+    POP $RB
+    ADD $RB, 6
+    PUSH $RA
+    LOAD $RA
+
+    ; store return address after the frame
+    SUB $RB, 7
+    STOR $RA
+
+    ; restore
+    POP $RA
+    POP $RB
+
+    ; return
+    SUB $SP, 3
+    RET
+
+restore_state:
+    ; change frame so I will return to the right location
+    OUT 'R'
+    POP $RA
+    PUSH $SP
+    POP $RB
+    ADD $RB, 7
+    STOR $RA
+    OUT 'j'
+
+    POP $RA
+    POP $RB
+    POP $RSI
+    POP $RDI
+    POP $RD
+    POP $RC
+    
+    RET
+
+
+fun_c:
+    MOV $RA, 0x6161
+    MOV $RB, 0x6262
+    MOV $RC, 0x6363
+    MOV $RD, 0x9999
+    MOV $RDI, 0x6565
+    MOV $RSI, 0x6666
+    OUT 'C'
+    ; should be 6161
+    RET
+
+fun_b:
+    MOV $RA, 0x4141
+    MOV $RB, 0x4242
+    MOV $RC, 0x4343
+    MOV $RD, 0x9999
+    MOV $RDI, 0x4545
+    MOV $RSI, 0x4646
+    OUT 'B'
+    CALL @save_state
+    CALL @fun_c
+    CALL @restore_state
+    OUT '+'
+    RET
+
+fun_a:
+    CALL @save_state
+    OUT 'A'
+    ; should be orig
+    ; SUB $SP, 0x100
+
+    CALL @fun_b
+
+    OUT 'V'
+    ; ADD $SP, 0x100
+    CALL @restore_state
+    OUT '+'
+    RET
+
+
+
+boot:
+    MOV $RA, 0x111
+    MOV $RB, 0x222
+    MOV $RC, 0x333
+    MOV $RD, 0x444
+    MOV $RDI, 0x555
+    MOV $RSI, 0x666
+    CALL @fun_a
+
+loop:
+    ; should be orig
+    JMP @loop

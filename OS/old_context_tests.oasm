@@ -1,0 +1,141 @@
+.text
+
+JMP @boot
+
+fun_c:
+    OUT 'C'
+    RET
+
+fun_b:
+    OUT 'B'
+    MOV $RA, 0x4141
+    MOV $RB, 0x4242
+    MOV $RC, 0x4343
+    MOV $RD, 0x4444
+    MOV $RDI, 0x5555
+    CALL @fun_c
+    RET
+
+save_state:
+    ; get the return address
+    PUSH $RB
+    PUSH $SP
+    POP $Rb
+    ADD $RB, 2
+    PUSH $RA
+    LOAD $RA
+
+    OUT 'R'
+    OUT 'A'
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+
+
+    POP $RA
+    POP $RB
+
+
+    ; make room for context saving
+    SUB $SP, 6
+
+    ; store rb because it's holds the location of the STOR
+    ; store ra because it's used to save the state of rb
+    ; TODO RB RA RB ?
+    PUSH $RA
+    PUSH $RB
+    PUSH $RB
+
+    ; -> mov rb, bp
+    PUSH $BP
+    POP $RB
+
+    ; store ra
+    STOR $RA
+    
+    ; move previus rb to ra and store ra
+    POP $RA
+    SUB $RB, 1
+    STOR $RA
+    ; restore RA to it's original value
+    POP $RA
+
+    ; stroe rc
+    SUB $RB, 1
+    STOR $RC
+    
+    ; store rd
+    SUB $RB, 1
+    STOR $RD
+
+    ; store rdi
+    SUB $RB, 1
+    STOR $RDI
+
+    ; restore rb
+    POP $RB
+
+    RET
+
+
+
+fun_a:
+    PUSH $BP
+
+    ; -> mov bp, sp
+    PUSH $SP
+    POP $BP
+
+    CALL @save_state
+    ; .......
+    OUT 'A'
+    CALL @fun_b
+
+
+    ; restore
+
+    ; mov rb, bp
+    PUSH $BP
+    POP $RB
+
+    ; store ra
+    LOAD $RA
+    
+    ; stroe rc (+1 because we keep the rb resore to the end)
+    SUB $RB, 2
+    LOAD $RC
+    
+    ; store rd
+    SUB $RB, 1
+    LOAD $RD
+
+    ; store rdi
+    SUB $RB, 1
+    LOAD $RDI
+
+    ; restore rb
+    ; move previus rb to ra and store ra
+    ADD $RB, 3
+    LOAD $RB
+
+    ADD $SP, 6
+    ; at this point SP should point at &0x6969
+    POP $BP
+    RET
+
+
+
+boot:
+    MOV $RA, 0x111
+    MOV $RB, 0x222
+    MOV $RC, 0x333
+    MOV $RD, 0x444
+    MOV $RDI, 0x555
+    MOV $BP, 0x6969
+    CALL @fun_a
+
+loop:
+    JMP @loop
