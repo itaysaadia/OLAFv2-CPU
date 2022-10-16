@@ -8,13 +8,11 @@
 ; strings 
 char OS_NAME[] = "OLAFv2"
 char GET_USERNAME[] = "enter username: "
-char NO_COMMAND[] = "command not found"
 char GET_FILENAME[] = "enter filename: "
-char HELP0[] = "commands:"
-char HELP1[] = "ls - list the files in the filesystem"
-char HELP2[] = "touch - create a new file"
-char HELP3[] = "cls - clears the screen"
-char HELP4[] = "help - print this help"
+char DELETED[] = " deleted"
+; errors
+char NO_COMMAND[] = "command not found"
+char ENOENT[] = "File not found"
 
 ; commands
 char touch[] = "touch"
@@ -22,10 +20,9 @@ char rm[] = "rm"
 char ls[] = "ls"
 char cat[] = "cat"
 char cls[] = "cls"
-char clear[] = "clear"
 char edit[] = "edit"
 char reset[] = "reset"
-char help[] = "help"
+char whoami[] = "whoami"
 
 
 .data
@@ -33,6 +30,7 @@ char help[] = "help"
 char username[128]
 char command[128]
 char filename_input[256]
+char dbginput[10]
 
 
 ; files
@@ -45,6 +43,51 @@ char files_data[40960]
 
 
 .text
+JMP @boot
+
+save_state:
+    ; store registers
+    PUSH $RC
+    PUSH $RD
+    PUSH $RDI
+    PUSH $RSI
+    
+    ; get return address
+    PUSH $RB
+    PUSH $SP
+    POP $RB
+    ADD $RB, 6
+    PUSH $RA
+    LOAD $RA
+
+    ; store return address after the frame
+    SUB $RB, 7
+    STOR $RA
+
+    ; restore
+    POP $RA
+    POP $RB
+
+    ; return
+    SUB $SP, 3
+    RET
+
+restore_state:
+    ; change frame so I will return to the right location
+    POP $RA
+    PUSH $SP
+    POP $RB
+    ADD $RB, 7
+    STOR $RA
+
+    POP $RA
+    POP $RB
+    POP $RSI
+    POP $RDI
+    POP $RD
+    POP $RC
+    
+    RET
 
 boot:
     CALL @__kernel__boot
@@ -70,7 +113,6 @@ prompt:
     OUT '#'
     OUT 0x20
 
-
 read_command:
     MOV $RDI, #command
     CALL @blocking_read
@@ -80,12 +122,6 @@ parse_command:
     __parse_command__test_cls:
         MOV $RDI, #command
         MOV $RSI, #cls
-        CALL @strcmp
-        TEST $RA, 1
-        JEQ @__parse_command__call_cls
-    __parse_command__test_clear:
-        MOV $RDI, #command
-        MOV $RSI, #clear
         CALL @strcmp
         TEST $RA, 1
         JEQ @__parse_command__call_cls
@@ -152,6 +188,7 @@ parse_command:
 
 
 ls:
+    CALL @save_state
     ; set $RA to the max fd
     MOV $RC, 0
     __ls__print_next_file_name:
@@ -170,6 +207,7 @@ ls:
         ADD $RC, 1
         JMP @__ls__print_next_file_name
     __ls__exit:
+        CALL @restore_state
         RET
 
 
@@ -177,8 +215,8 @@ reset:
     OUT 'b'
     OUT 'y'
     OUT 'b'
-    CALL @blocking_read
-    RST
+    OUT 10
+    JMP @boot
 
 
 cls:
@@ -187,51 +225,76 @@ cls:
 
 
 whoami:
+    CALL @save_state
     MOV $RDI, #username
     CALL @print
     OUT 10
+    CALL @restore_state
     RET
 
 
 touch: 
+    CALL @save_state
     MOV $RDI, #GET_FILENAME
     CALL @print
     MOV $RDI, #filename_input
     CALL @blocking_read
     MOV $RDI, #filename_input
     CALL @__kernel__create_file
+    CALL @restore_state
     RET
 
 
 rm: 
+    CALL @save_state
+    ; get filename to delete
     MOV $RDI, #GET_FILENAME
     CALL @print
     MOV $RDI, #filename_input
     CALL @blocking_read
     MOV $RDI, #filename_input
+
     CALL @__kernel__delete_file
+    TEST $RA, 0xffff
+    JEQ @__rm__error
+    MOV $RDI, #filename_input
+    CALL @print
+    MOV $RDI, #DELETED
+    CALL @print
+    OUT 10
+    RET
+    __rm__error:
+    ; file not found
+    MOV $RDI, #ENOENT
+    CALL @print
+    CALL @restore_state
     RET
 
 
-help:
-    MOV $RDI, #HELP0
-    CALL @print
-    OUT 10
-    MOV $RDI, #HELP1
-    CALL @print
-    OUT 10
-    MOV $RDI, #HELP2
-    CALL @print
-    OUT 10
-    MOV $RDI, #HELP3
-    CALL @print
-    OUT 10
-    MOV $RDI, #HELP4
-    CALL @print
-    OUT 10
-
-
-; stdlib
+dbg:
+    OUT '>'
+    PUSH $RDI
+    MOV $RDI, #dbginput
+    CALL @blocking_read
+    POP $RDI
+    OUT '!'
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    RET
 
 ; gets 1 argument, the initial location for the data
 ; returns the number of chars gets
@@ -269,6 +332,7 @@ blocking_read:
 
 ; gets 1 argument, the initial position of the data
 print:
+    CALL @save_state
     PUSH $RDI
     POP $RB
     __print__get_char:
@@ -280,12 +344,12 @@ print:
             ADD $RB, 1
         JMP @__print__get_char
     __print__ret:
-    RET
+        CALL @restore_state
+        RET
 
 
 ; get 2 arguments, 2 addresses of null - terminated strings to compare
 strcmp:
-    PUSH $RC
     __strcmp__load_first_value:
         PUSH $RDI
         POP $RB
@@ -314,7 +378,6 @@ strcmp:
         MOV $RA, 0
         JMP @__strcmp__exit
     __strcmp__exit:
-        POP $RC
         RET
 
 
@@ -342,7 +405,6 @@ strcpy:
 
 
 strlen:
-    PUSH $RC
     PUSH $RDI
     MOV $RA, 1
     __strlen__count:
@@ -356,7 +418,6 @@ strlen:
         JMP @__strlen__count
     __strlen__exit:
         POP $RDI
-        POP $RC
         RET
 
 
@@ -378,6 +439,7 @@ kernel:
 
 
     __kernel__create_file:
+        CALL @save_state
         __kernel__create_file__copy_filename:
             ; RDI is the name of the file 
             MOV $RB, #last_file_name
@@ -403,40 +465,30 @@ kernel:
             MOV $RB, #last_file_name
             STOR $RA
         CALL @__kernel__increase_last_fd
+        CALL @restore_state
         RET
 
 
     ; this function gets one argument, a pointer to a filename
     ; to delete
     __kernel__delete_file:
+        CALL @save_state
         CALL @__kernel__find_file
         TEST $RA, 0xffff
+        CALL @dbg
         JEQ @__kernel__delete_file__exit
-        PUSH $RD
-        PUSH $RA
-        POP $RD
-        ADD $RD, 30
-        OUT
-        POP $RD
         PUSH $RA
         POP $RDI
         CALL @__kernel__get_kernel_file_from_fd
-        PUSH $RB
-        PUSH $RA 
-        POP $RB 
-        MOV $RA, 0 
-        STOR $RA 
-        ADD $RB, 1 
-        STOR $RA 
-        MOV $RA, 1 
-        POP $RB
         __kernel__delete_file__exit:
+            CALL @restore_state
             RET
 
 
     ; this function gets 1 arguments (file name)
     ; and returns the corresponding file descriptor
     __kernel__find_file:
+        CALL @save_state
         ; setting $RSI to $RDI's value for the function @strcmp. we are doing 
         ; this right now because the value of $RDI is changing during execution
         PUSH $RDI
@@ -454,18 +506,21 @@ kernel:
             PUSH $RA
             POP $RDI
             CALL @strcmp
-            TEST $RA, 1
+            CHMR
+            TEST $RA, $RC
+            CHMC
             JEQ @__kernel__find_file__found
+            OUT 10
             ADD $RC, 1
-            JMP @__kernel__find_file__check_next_file_name
+            JMP @__ls__print_next_file_name
         __kernel__find_file__found:
             PUSH $RC
             POP $RA
             JMP @__kernel__find_file__exit
         __kernel__find_file__not_found:
-            OUT 'N'
             MOV $RA, 0xffff
         __kernel__find_file__exit:
+            CALL @restore_state
             RET
 
     __kernel__get_next_fd:
@@ -477,42 +532,38 @@ kernel:
         
 
     __kernel__get_filename_from_fd:
-            CALL @__kernel__get_kernel_file_from_fd
-            PUSH $RA
-            POP $RB
+        CALL @__kernel__get_kernel_file_from_fd
+        PUSH $RA
+        POP $RB
+        LOAD $RA
+        RET
+
+
+    __kernel__get_data_from_fd:
+        CALL @__kernel__get_kernel_file_from_fd
+        ADD $RA, 1
+        RET
+
+
+    __kernel__get_last_fd:
+            MOV $RB, #last_file_descriptor
             LOAD $RA
             RET
 
 
-    __kernel__get_data_from_fd:
-            CALL @__kernel__get_kernel_file_from_fd
-            ADD $RA, 1
-            RET
-
-
-    __kernel__get_last_fd: 
-            ;PUSH $RB 
-            MOV $RB, #last_file_descriptor 
-            LOAD $RA 
-            ;POP $RB 
-            RET 
-
-
     __kernel__increase_last_fd:
-            PUSH $RDI
             PUSH $RA
             PUSH $RA
             POP $RDI
             CALL @__kernel__get_last_fd
             ADD $RA, 1
+            MOV $RB, #last_file_descriptor
             STOR $RA
             POP $RA
-            POP $RDI
             RET
 
 
     __kernel__get_kernel_file_from_fd:
-            PUSH $RDI
             ; multiply by 2 because it is the size of the file
             MUL $RDI, 2
             ; add to the address of file_maps because we
@@ -520,5 +571,4 @@ kernel:
             ADD $RDI, #file_maps
             PUSH $RDI
             POP $RA
-            POP $RDI
             RET
