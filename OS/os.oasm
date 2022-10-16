@@ -17,7 +17,9 @@ char HELP0[] = "commands:"
 char HELP1[] = "ls - list the files in the filesystem"
 char HELP2[] = "touch - create a new file"
 char HELP3[] = "cls - clears the screen"
-char HELP4[] = "help - print this help"
+char HELP4[] = "whoami - print the current username"
+char HELP5[] = "su - switch user"
+char HELP6[] = "help - print this help"
 char ENOENT[] = "File not found"
 
 ; commands
@@ -29,6 +31,7 @@ char cls[] = "cls"
 char edit[] = "edit"
 char reset[] = "reset"
 char whoami[] = "whoami"
+char su[] = "su"
 char help[] = "help"
 
 
@@ -161,6 +164,12 @@ parse_command:
         CALL @strcmp
         TEST $RA, 1
         JEQ @__parse_command__call_rm
+    __parse_command__test_su:
+        MOV $RDI, #command
+        MOV $RSI, #su
+        CALL @strcmp
+        TEST $RA, 1
+        JEQ @get_username
     __parse_command__test_whoami:
         MOV $RDI, #command
         MOV $RSI, #whoami
@@ -303,6 +312,13 @@ help:
     MOV $RDI, #HELP4
     CALL @print
     OUT 10
+    MOV $RDI, #HELP5
+    CALL @print
+    OUT 10
+    MOV $RDI, #HELP6
+    CALL @print
+    OUT 10
+    RET
 
 
 ; stdlib
