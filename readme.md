@@ -26,6 +26,8 @@ How to run
 
 from the top folder, run `python3 ./Assembler/assembler.py`
 the output should go to `OS/BOOT.rom` and `OS/initram.ram`
+
+Alternatively, you can use `start.sh` to compile the OS and load it to the CPU.
 ### Loading the OS into the machine
 
 To emulate the CPU, you should download [Logisim](http://www.cburch.com/logisim/ "Click here to download Logisim!").
