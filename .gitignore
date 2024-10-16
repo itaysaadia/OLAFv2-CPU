@@ -10,3 +10,5 @@ OS/*.rom
 OS/initram.ram
 
 OS/BOOT.rom
+
+*venv
